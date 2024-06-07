@@ -55,6 +55,7 @@ On non-AMD platforms, like NVIDIA, HIP provides header files required to support
 * {doc}`/doxygen/html/index`
 * [C++ Language Extensions](./reference/cpp_language_extensions)
 * [HIP math API](./reference/math_api)
+* [HIP environment variables](./reference/env_variables)
 * [Comparing Syntax for Different APIs](./reference/terms)
 * [HSA Runtime API for ROCm](./reference/virtual_rocr)
 * [HIP Managed Memory Allocation API](./reference/unified_memory_reference)

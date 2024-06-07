@@ -39,6 +39,7 @@ subtrees:
   - file: reference/cpp_language_extensions
     title: C++ Language Extensions
   - file: reference/math_api
+  - file: reference/env_variables
   - file: reference/terms
     title: Comparing Syntax for different APIs
   - file: reference/virtual_rocr
