@@ -34,7 +34,7 @@ fatbinary
 frontends
 gedit
 GPGPU
-Gromacs
+GROMACS
 GWS
 hardcoded
 HC

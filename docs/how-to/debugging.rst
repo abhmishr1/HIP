@@ -8,8 +8,7 @@
 Debugging with HIP
 *************************************************************************
 
-AMD debugging tools include *ltrace* and *ROCgdb*. External tools are available and can be found
-online. For example, if you're using Windows, you can use *Microsoft Visual Studio* and *WinGDB*.
+ROCm HIP debugging tools include `ltrace <https://ltrace.org/>`_ and :doc:`ROCgdb <rocgdb:index>`. External tools are available and can be found online. For example, if you're using Windows, you can use Microsoft Visual Studio and WinGDB.
 
 You can trace and debug your code using the following tools and techniques.
 

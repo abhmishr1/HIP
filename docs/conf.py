@@ -46,3 +46,6 @@ cpp_paren_attributes = ["__declspec"]
 suppress_warnings = ["etoc.toctree"]
 
 numfig = False
+
+
+exclude_patterns = ['how-to/debugging_env.rst']

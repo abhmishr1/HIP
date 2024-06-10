@@ -50,7 +50,7 @@ The profiling environment variables in HIP is collected in the next table. For m
     * - | ``ROC_GLOBAL_CU_MASK``
         | Sets the mask on queues created by the HIP or the OpenCL runtimes, 
         | this mask will also be set for queues being profiled.
-      -
+      - ``0xf``, enables only 4 CUs
 
     * - | ``ROCR_VISIBLE_DEVICES``
         | A list of device indices or UUIDs that will be exposed to applications.
@@ -119,7 +119,7 @@ next table.
       - 100
 
     * - | ``GPU_MAX_REMOTE_MEM_SIZE``
-        | Maximum size , in Ki that allows device memory substitution with system
+        | Maximum size, in Ki, that allows device memory substitution with system
       - ``uint``
       - 2
 
@@ -156,15 +156,9 @@ next table.
 HIP environment variables tips
 ==============================
 
-Please feel free to open PR with your environment variable tips. We will check and add to this section.
+This documentation set is open source. Consider adding your own tips to this section. They will be reviewed by the AMD ROCm documentation team before being committed to the documentation.
 
-* The performance can be improved at Gromacs HIP backend, when the
-``ROC_ACTIVE_WAIT_TIMEOUT=0`` and ``ROC_USE_FGS_KERNARG=0`` environment
-  variables are set.
-* ``HSA_OVERRIDE_GFX_VERSION`` can be used for unsupported GPUs looks like
-  supported GPUS. `HSA_OVERRIDE_GFX_VERSION example. <https://github.com/ROCm/ROCm/issues/2216>`_
-* ``ROC_GLOBAL_CU_MASK`` and ``ROCR_VISIBLE_DEVICES`` can be used to see how a
-  kernel scale with different CU numbers. If a kernel compute bounded, it shows
-  linear scale with increasing CU numbers.
-* ``AMD_LOG_LEVEL=3``, ``AMD_SERIALIZE_KERNEL=3`` and ``AMD_SERIALIZE_COPY=3``
-  can help to debug (without debugger) and see which kernel fails.
+* The performance can be improved at `GROMACS <https://github.com/ROCM/Gromacs>`_ HIP backend, when the ``ROC_ACTIVE_WAIT_TIMEOUT=0`` and ``ROC_USE_FGS_KERNARG=0`` environment variables are set.
+* ``HSA_OVERRIDE_GFX_VERSION`` can be used for unsupported GPUs looks like supported GPUS. `HSA_OVERRIDE_GFX_VERSION example. <https://github.com/ROCm/ROCm/issues/2216>`_
+* ``ROC_GLOBAL_CU_MASK`` and ``ROCR_VISIBLE_DEVICES`` can be used to see how a kernel scale with different CU numbers. If a kernel compute bounded, it shows linear scale with increasing CU numbers.
+* ``AMD_LOG_LEVEL=3``, ``AMD_SERIALIZE_KERNEL=3`` and ``AMD_SERIALIZE_COPY=3`` can help to debug (without debugger) and see which kernel fails.

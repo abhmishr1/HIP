@@ -1,6 +1,6 @@
 .. list-table::
     :header-rows: 1
-    
+
     * - **Environment variable**
       - **Default value**
       - **Usage**
@@ -43,7 +43,7 @@
     
     * - | ``HIP_VISIBLE_DEVICES`` (or ``CUDA_VISIBLE_DEVICES``)
         | Only devices whose index is present in the sequence are visible to HIP
-      -
+      - Not set by default.
       - 0,1,2: Depending on the number of devices on the system
 
     * - | ``GPU_DUMP_CODE_OBJECT``
@@ -55,14 +55,16 @@
     * - | ``AMD_SERIALIZE_KERNEL``
         | Serialize kernel enqueue
       - 0
-      - | 1: Wait for completion before enqueue
+      - | 0: Disable
+        | 1: Wait for completion before enqueue
         | 2: Wait for completion after enqueue
         | 3: Both
 
     * - | ``AMD_SERIALIZE_COPY``
         | Serialize copies
       - 0
-      - | 1: Wait for completion before enqueue
+      - | 0: Disable
+        | 1: Wait for completion before enqueue
         | 2: Wait for completion after enqueue
         | 3: Both
 
