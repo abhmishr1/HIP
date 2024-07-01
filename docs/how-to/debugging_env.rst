@@ -4,27 +4,33 @@
 
     * - **Environment variable**
       - **Default value**
-      - **Usage**
+      - **Value**
 
     * - | ``AMD_LOG_LEVEL``
-        | Enable HIP log on different Level.
+        | Enables HIP log on various level.
       - ``0``
       - | 0: Disable log.
-        | 1: Enable log on error level.
-        | 2: Enable log on warning and below levels.
-        | 3: Enable log on information and below levels.
-        | 4: Enable log on debug and below levels. Decode and display AQL packets.
+        | 1: Enables log on error level.
+        | 2: Enables log on warning and lower levels.
+        | 3: Enables log on information and lower levels.
+        | 4: Enables log on debug and lower levels.
+
+    * - | ``AMD_LOG_LEVEL_FILE``
+        | Sets output file for ``AMD_LOG_LEVEL``.
+      - stderr output
+      - 
 
     * - | ``AMD_LOG_MASK``
-        | Enable HIP log on different level.
+        | Specifies HIP log filters. Here is the ` complete list of log masks <https://github.com/ROCm/clr/blob/develop/rocclr/utils/debug.hpp#L40>`_.
       - ``0x7FFFFFFF``
       - | 0x1: Log API calls.
-        | 0x2: Kernel and Copy Commands and Barriers.
+        | 0x2: Kernel and copy commands and barriers.
         | 0x4: Synchronization and waiting for commands to finish.
-        | 0x8: Enable log on information and below levels.
-        | 0x20: Queue commands and queue contents.
-        | 0x40: Signal creation, allocation, pool.
-        | 0x80: Locks and thread-safety code.
+        | 0x8: Decode and display AQL packets.
+        | 0x10: Queue commands and queue contents.
+        | 0x20: Signal creation, allocation, pool.
+        | 0x40: Locks and thread-safety code.
+        | 0x80: Kernel creations and arguments, etc.
         | 0x100: Copy debug.
         | 0x200: Detailed copy debug.
         | 0x400: Resource allocation, performance-impacting events.
@@ -34,6 +40,9 @@
         | 0x4000: Show code creation debug.
         | 0x8000: More detailed command info, including barrier commands.
         | 0x10000: Log message location.
+        | 0x20000: Memory allocation.
+        | 0x40000: Memory pool allocation, including memory in graphs.
+        | 0x80000: Timestamp details.
         | 0xFFFFFFFF: Log always even mask flag is zero.
 
     * - | ``HIP_LAUNCH_BLOCKING``

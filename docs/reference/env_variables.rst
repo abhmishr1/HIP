@@ -6,7 +6,7 @@
 HIP environment variables
 *************************************************************
 
-In this section, the reader can find all the important HIP environment variables. The full collection of the ROCm environment variables is on the :doc:`ROCm environment variables page<rocm:reference/env-variables>`.
+In this section, the reader can find all the important HIP environment variables, which are grouped by functionality. The full collection of the ROCm environment variables, which are grouped by projects is on the :doc:`ROCm environment variables page <rocm:reference/env-variables>`.
 
 GPU isolation variables
 =======================
@@ -18,7 +18,7 @@ The GPU isolation environment variables in HIP are collected in the next table. 
     :widths: 70,30
 
     * - **Environment variable**
-      - **Usage**
+      - **Value**
 
     * - | ``ROCR_VISIBLE_DEVICES``
         | A list of device indices or UUIDs that will be exposed to applications.
@@ -42,7 +42,7 @@ The profiling environment variables in HIP are collected in the next table. For 
     :widths: 70,30
 
     * - **Environment variable**
-      - **Usage**
+      - **Value**
 
     * - | ``HSA_CU_MASK``
         | Sets the mask on a lower level of queue creation in the driver,
@@ -78,7 +78,7 @@ The memory management related environment variables in HIP are collected in the 
 
     * - **Environment variable**
       - **Default value**
-      - **Usage**
+      - **Value**
 
     * - | ``HIP_HIDDEN_FREE_MEM``
         | Amount of memory to hide from the free memory reported by hipMemGetInfo.
@@ -87,15 +87,13 @@ The memory management related environment variables in HIP are collected in the 
         | Unit: megabyte (MB)
 
     * - | ``HIP_HOST_COHERENT``
-        | Coherent memory in ``hipHostMalloc``.
+        | Specifies if the memory is coherent between the host and GPU in ``hipHostMalloc``.
       - ``0``
-      - | 0: Memory is not coherent between host and GPU.
-        | 1: Memory is coherent with host.
-        | Environment variable has effect, if:
-        | - One of the HostMalloc flags is set.
-        | - ``hipHostMallocCoherent=0``
-        | - ``hipHostMallocNonCoherent=0``
-        | - ``hipHostMallocMapped=0``
+      - | 0: Memory is not coherent.
+        | 1: Memory is coherent.
+        | Environment variable has effect, if the following conditions are statisfied:
+        | - One of the ``hipHostMallocDefault``, ``hipHostMallocPortable``,  ``hipHostMallocWriteCombined`` or ``hipHostMallocNumaUser`` flag set to 1.
+        | - ``hipHostMallocCoherent``, ``hipHostMallocNonCoherent`` and ``hipHostMallocMapped`` flags set to 0.
 
     * - | ``HIP_INITIAL_DM_SIZE``
         | Set initial heap size for device malloc.
