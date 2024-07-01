@@ -163,13 +163,3 @@ The memory management related environment variables in HIP are collected in the 
       - ``0``
       - | 0: Disable
         | 1: Enable
-
-HIP environment variable tips
-==============================
-
-This documentation set is open source. Consider adding your own tips to this section. They will be reviewed by the AMD ROCm documentation team before being committed to the documentation.
-
-* The performance can be improved at `GROMACS <https://github.com/ROCM/Gromacs>`_ HIP backend, when the ``ROC_ACTIVE_WAIT_TIMEOUT=0`` and ``ROC_USE_FGS_KERNARG=0`` environment variables are set.
-* Unsupported AMD GPUs can act like supported GPUs, if the ``HSA_OVERRIDE_GFX_VERSION`` environment variable is set.
-* ``ROC_GLOBAL_CU_MASK`` and ``HSA_CU_MASK`` can be used to see how a kernel scale with different CU numbers. If a kernel compute bounded, it shows linear scale with increasing CU numbers.
-* ``AMD_LOG_LEVEL=3``, ``AMD_SERIALIZE_KERNEL=3`` and ``AMD_SERIALIZE_COPY=3`` can help to debug (without debugger) and see which kernel fails.
