@@ -6,22 +6,22 @@
 Stream Ordered Memory Allocator
 *******************************************************************************
 
-The Stream Ordered Memory Allocator (SOMA) is part of the HIP runtime API. It provides an asynchronous memory allocation mechanism with stream-ordering semantics. With SOMA, you can allocate and free memory in stream order, ensuring that all asynchronous accesses occur between the stream executions of allocation and de-allocation. Compliance with stream order prevents use-before-allocation or use-after-free errors, which would otherwise lead to undefined behavior.
+The Stream Ordered Memory Allocator (SOMA) is part of the HIP runtime API. SOMA provides an asynchronous memory allocation mechanism with stream-ordering semantics. You can use SOMA to allocate and free memory in stream order, which ensures that all asynchronous accesses occur between the stream executions of allocation and deallocation. Compliance with stream order prevents use-before-allocation or use-after-free errors, which helps to avoid an undefined behavior.
 
 Advantages of SOMA:
 
-- Efficient reuse: SOMA enables efficient memory reuse across streams, reducing unnecessary allocation overhead.
-- Fine-grained control: You can set attributes and control caching behavior for memory pools.
-- Inter-process sharing: Secure sharing of allocations between processes is possible.
-- Optimizations: The driver can optimize based on its awareness of SOMA and other stream management APIs.
+- Efficient reuse: Enables efficient memory reuse across streams, which reduces unnecessary allocation overhead.
+- Fine-grained control: Allows you to set attributes and control caching behavior for memory pools.
+- Inter-process sharing: Enables secure sharing of allocations between processes.
+- Optimizations: Allows driver to optimize based on its awareness of SOMA and other stream management APIs.
 
 Disadvantages of SOMA:
 
-- Temporal constraints: Developers must adhere strictly to stream order to avoid errors.
-- Complexity: Properly managing memory in stream order can be intricate.
-- Learning curve: Understanding and utilizing SOMA effectively may require additional effort.
+- Temporal constraints: Requires you to adhere strictly to stream order to avoid errors.
+- Complexity: Involves memory management in stream order, which can be intricate.
+- Learning curve: Requires you to put additional efforts to understand and utilize SOMA effectively.
 
-Stream ordered memory allocator usage
+Using SOMA
 =====================================
 
 Users can allocate memory using ``hipMallocAsync()`` with stream-ordered semantics. This means that all asynchronous accesses to the allocation must occur between the stream executions of the allocation and the free. If memory is accessed outside of this promised stream order, it can lead to undefined behavior (e.g., use before allocation or use after free errors). The allocator may reallocate memory as long as it guarantees compliant memory accesses will not overlap temporally. ``hipFreeAsync()`` frees memory from the pool with stream-ordered semantics.
@@ -108,21 +108,20 @@ The following example explains how to use stream ordered memory allocation.
           return 0;
       }
 
-For more details, visit the :ref:`stream ordered allocator reference <stream-ordered-allocator-reference>`.
+For more details, see :ref:`stream ordered allocator reference <stream-ordered-allocator-reference>`.
 
 Memory pools
 ============
 
-Memory pools provide a way to manage memory with stream-ordered behavior, ensuring proper synchronization and avoiding memory access errors. Division of a single memory system into separate pools allows querying each partition's access path properties. Memory pools are used for host memory, device memory, and unified memory.
+Memory pools provide a way to manage memory with stream-ordered behavior, ensuring proper synchronization and avoiding memory access errors. Division of a single memory system into separate pools allows querying the access path properties of each partition. Memory pools are used for host memory, device memory, and unified memory.
 
 Set pools
 ---------
 
 The ``hipMallocAsync()`` function uses the current memory pool, while also providing the opportunity to create and use different pools with the ``hipMemPoolCreate()`` and ``hipMallocFromPoolAsync()`` functions respectively.
 
-Unlike CUDA, where stream-ordered memory allocation can be implicit, in AMD HIP, it's always explicit. This means that you need to manage memory allocation for each stream, ensuring precise control over memory usage and synchronization.
-
-.. code-block::cpp
+Unlike NVIDIA CUDA, where stream-ordered memory allocation can be implicit, in AMD HIP, it's always explicit. This requires you to manage memory allocation for each stream in HIP while ensuring precise control over memory usage and synchronization.
+.. code-block:: cpp
 
     #include <hip/hip_runtime.h>
 
@@ -174,11 +173,11 @@ The memory allocator allows you to allocate and free memory in stream order. To 
     uint64_t threshold = UINT64_MAX;
     hipMemPoolSetAttribute(memPool, hipMemPoolAttrReleaseThreshold, &threshold);
 
-When more than the specified threshold bytes of memory are held by the memory pool, the allocator will try to release memory back to the operating system during the next call to stream, event, or context synchronization.
+When more than the specified threshold of bytes of memory are held by the memory pool, the allocator will try to release memory back to the operating system during the next call to stream, event, or context synchronization.
 
 For a better performance, it may be a good practice to adjust the memory pool size with ``hipMemPoolTrimTo()``. It can be useful to reclaim memory from a memory pool that is larger than necessary, optimizing memory usage for your application.
 
-.. code-block::cpp
+.. code-block:: cpp
 
     #include <hip/hip_runtime.h>
     #include <iostream>
@@ -226,7 +225,7 @@ You can reset them to the current value using the ``hipMemPoolSetAttribute()``.
 
     #include <hip/hip_runtime.h>
 
-    // sample helper functions for getting the usage statistics in bulk
+    // Sample helper functions for getting the usage statistics in bulk.
     struct usageStatistics {
         uint64_t reservedMemCurrent;
         uint64_t reservedMemHigh;
@@ -253,7 +252,7 @@ You can reset them to the current value using the ``hipMemPoolSetAttribute()``.
 Memory reuse policies
 ---------------------
 
-The allocator may reallocate memory as long as it guarantees that compliant memory accesses won't overlap temporally. Turning on and of the following memory pool reuse policy attribute flags can optimize the memory use:
+The allocator may reallocate memory as long as it guarantees that compliant memory accesses won't overlap temporally. Turning on and off the following memory pool reuse policy attribute flags can optimize the memory use:
 
 - ``hipMemPoolReuseFollowEventDependencies`` checks event dependencies before allocating additional GPU memory.
 - ``hipMemPoolReuseAllowOpportunistic`` checks freed allocations to determine if the stream order semantic indicated by the free operation has been met.
@@ -389,7 +388,7 @@ The ``hipMemPoolExportToSharedHandle()`` is used to export a memory pool pointer
 
 The ``hipMemPoolImportFromShareableHandle()`` function is used to import a memory pool pointer from a shareable handle -- such as a file descriptor or a handle obtained from another process. It allows to restore a memory pool pointer that was previously exported using ``hipMemPoolExportPointer()`` or a similar mechanism. The exported shareable handle data contains information about the memory pool, including its size, location, and other relevant details. After importing, valid memory pointer is received that points to the same memory area. Useful for inter-process communication or sharing memory across different contexts.
 
-.. code-block::cpp
+.. code-block:: cpp
 
     #include <iostream>
     #include <fstream>
