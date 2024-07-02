@@ -1143,6 +1143,8 @@ Memory stream
 .. doxygengroup:: Stream
    :content-only:
 
+.. _stream-ordered-allocator-reference:
+
 .. doxygengroup:: StreamO
    :content-only:
 
