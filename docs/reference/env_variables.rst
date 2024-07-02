@@ -6,7 +6,7 @@
 HIP environment variables
 *************************************************************
 
-In this section, the reader can find all the important HIP environment variables, which are grouped by functionality. The full collection of the ROCm environment variables, which are grouped by projects is on the :doc:`ROCm environment variables page <rocm:reference/env-variables>`.
+In this section, the reader can find all the important HIP environment variables on AMD platform, which are grouped by functionality. The full collection of the ROCm environment variables, which are grouped by projects is on the :doc:`ROCm environment variables page <rocm:reference/env-variables>`.
 
 GPU isolation variables
 =======================
