@@ -12,6 +12,9 @@ python:
    install:
    - requirements: docs/sphinx/requirements.txt
 
+conda:
+  environment: readthedocs_env.yaml
+
 build:
    os: ubuntu-22.04
    tools:
