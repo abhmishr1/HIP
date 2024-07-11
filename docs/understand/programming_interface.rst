@@ -38,16 +38,5 @@ The source code compiled with HIP compilers are separated to device code and hos
 
 For example of compiling from command line, check the :ref:` SAXPY tutorial compiling <compiling_on_the_command_line>`.
 
-HIP versioning
-===============
-
-.. include:: algorithm-libraries-support-matrix-content.rst
-
-Linux kernel driver support
----------------------------
-
-.. include:: user-kernel-space-compat-matrix-content.rst
-
-
 HIP runtime API
 ===============
