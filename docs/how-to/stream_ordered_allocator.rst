@@ -121,6 +121,7 @@ Set pools
 The ``hipMallocAsync()`` function uses the current memory pool, while also providing the opportunity to create and use different pools with the ``hipMemPoolCreate()`` and ``hipMallocFromPoolAsync()`` functions respectively.
 
 Unlike NVIDIA CUDA, where stream-ordered memory allocation can be implicit, in AMD HIP, it's always explicit. This requires you to manage memory allocation for each stream in HIP while ensuring precise control over memory usage and synchronization.
+
 .. code-block:: cpp
 
     #include <hip/hip_runtime.h>
@@ -169,7 +170,7 @@ Trim pools
 
 The memory allocator allows you to allocate and free memory in stream order. To control memory usage, the release threshold attribute can be set by ``hipMemPoolAttrReleaseThreshold``. This threshold specifies the amount of reserved memory in bytes that a pool should hold onto before attempting to release memory back to the operating system.
 
-.. code-block::cpp
+.. code-block:: cpp
     uint64_t threshold = UINT64_MAX;
     hipMemPoolSetAttribute(memPool, hipMemPoolAttrReleaseThreshold, &threshold);
 
@@ -221,7 +222,7 @@ Resource usage statistics can help in optimization. The following pool attribute
 
 You can reset them to the current value using the ``hipMemPoolSetAttribute()``.
 
-.. code-block::cpp
+.. code-block:: cpp
 
     #include <hip/hip_runtime.h>
 
@@ -241,7 +242,7 @@ You can reset them to the current value using the ``hipMemPoolSetAttribute()``.
         hipMemPoolGetAttribute(memPool, hipMemPoolAttrUsedMemHigh, &statistics->usedMemHigh);
     }
 
-    // resetting the watermarks will make them take on the current value.
+    // Resetting the watermarks resets them to the current value.
     void resetStatistics(hipMemoryPool_t memPool)
     {
         uint64_t value = 0;
@@ -275,7 +276,7 @@ Device pointer
 
 The ``hipMemPoolExportPointer()`` function allows to export data to share a memory pool pointer directly between processes. It is useful to share a memory allocation with another process.
 
-.. code-block::cpp
+.. code-block:: cpp
 
     #include <iostream>
     #include <fstream>
@@ -313,7 +314,7 @@ The ``hipMemPoolImportPointer()`` function allows to import a memory pool pointe
 
 The example code to read the exported pool based on the previous example is the following:
 
-.. code-block::cpp
+.. code-block:: cpp
 
     #include <iostream>
     #include <fstream>
@@ -321,7 +322,7 @@ The example code to read the exported pool based on the previous example is the 
 
     int main() {
 
-        // Assume you previously exported the memory pool pointer.
+        // Considering that you have exported the memory pool pointer already.
         // Now, let's simulate reading the exported data from a named pipe (FIFO).
         const char* fifoPath = "/tmp/myfifo"; // Change this to a unique path.
         std::ifstream fifoStream(fifoPath, std::ios::in | std::ios::binary);
@@ -352,7 +353,7 @@ Shareable handle
 
 The ``hipMemPoolExportToSharedHandle()`` is used to export a memory pool pointer to a shareable handle. This handle can be a file descriptor or a handle obtained from another process. The exported handle contains information about the memory pool, including its size, location, and other relevant details.
 
-.. code-block::cpp
+.. code-block:: cpp
 
     #include <iostream>
     #include <fstream>
@@ -395,7 +396,7 @@ The ``hipMemPoolImportFromShareableHandle()`` function is used to import a memor
     #include <hip/hip_runtime.h>
 
     int main() {
-        // Assume you previously exported the memory pool pointer.
+        // Considering that you have exported the memory pool pointer already.
         // Now, let's simulate reading the exported data from a named pipe (FIFO).
         const char* fifoPath = "/tmp/myfifo"; // Change this to a unique path
         std::ifstream fifoStream(fifoPath, std::ios::in | std::ios::binary);
