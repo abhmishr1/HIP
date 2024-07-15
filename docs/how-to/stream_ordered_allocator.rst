@@ -61,8 +61,18 @@ Here is how to use stream ordered memory allocation:
           dim3 gridSize((numElements + blockSize.x - 1) / blockSize.x);
           myKernel<<<gridSize, blockSize>>>(devData, numElements);
 
+          // Copy data back to host.
+          int* hostData = new int[numElements];
+          hipMemcpy(hostData, devData, numElements * sizeof(*devData), hipMemcpyDeviceToHost);
+
+          // Print the array.
+          for (size_t i = 0; i < numElements; ++i) {
+              std::cout << "Element " << i << ": " << hostData[i] << std::endl;
+          }
+
           // Free memory with stream ordered semantics.
           hipFreeAsync(devData, streamId);
+          delete[] hostData;
 
           // Synchronize to ensure completion.
           hipDeviceSynchronize();
@@ -99,8 +109,18 @@ Here is how to use stream ordered memory allocation:
           dim3 gridSize((numElements + blockSize.x - 1) / blockSize.x);
           myKernel<<<gridSize, blockSize>>>(devData, numElements);
 
+          // Copy data back to host.
+          int* hostData = new int[numElements];
+          hipMemcpy(hostData, devData, numElements * sizeof(*devData), hipMemcpyDeviceToHost);
+
+          // Print the array.
+          for (size_t i = 0; i < numElements; ++i) {
+              std::cout << "Element " << i << ": " << hostData[i] << std::endl;
+          }
+
           // Free memory.
           hipFree(devData);
+          delete[] hostData;
 
           // Synchronize to ensure completion.
           hipDeviceSynchronize();
@@ -124,6 +144,7 @@ Unlike NVIDIA CUDA, where stream-ordered memory allocation can be implicit, in A
 
 .. code-block:: cpp
 
+    #include <iostream>
     #include <hip/hip_runtime.h>
 
     // Kernel to perform some computation on allocated memory.
@@ -135,32 +156,56 @@ Unlike NVIDIA CUDA, where stream-ordered memory allocation can be implicit, in A
     }
 
     int main() {
-        // Initialize HIP.
-        hipInit(0);
-
         // Create a stream.
         hipStream_t stream;
         hipStreamCreate(&stream);
 
-        // Allocate memory pool.
-        hipDeviceptr_t pool;
-        hipMalloc(&pool, 1024 * sizeof(int));
+        // Create a memory pool with default properties.
+        hipMemPoolProps poolProps = {};
+        poolProps.allocType = hipMemAllocationTypePinned;
+        poolProps.handleTypes = hipMemHandleTypePosixFileDescriptor;
+        poolProps.location.type = hipMemLocationTypeDevice;
+        poolProps.location.id = 0; // Assuming device 0.
+
+        hipMemPool_t memPool;
+        hipMemPoolCreate(&memPool, &poolProps);
 
         // Allocate memory from the pool asynchronously.
-        int* devData;
-        hipMallocFromPoolAsync(&devData, 256 * sizeof(int), pool, stream);
+        constexpr size_t numElements = 1024;
+        int* devData = nullptr;
+        hipMallocFromPoolAsync(&devData, numElements * sizeof(*devData), memPool, stream);
+
+        // Define grid and block sizes.
+        dim3 blockSize(256);
+        dim3 gridSize((numElements + blockSize.x - 1) / blockSize.x);
 
         // Launch the kernel to perform computation.
-        dim3 blockSize(256);
-        dim3 gridSize(1);
-        myKernel<<<gridSize, blockSize>>>(devData, 256);
+        myKernel<<<gridSize, blockSize, 0, stream>>>(devData, numElements);
+
+        // Synchronize the stream.
+        hipStreamSynchronize(stream);
+
+        // Copy data back to host.
+        int* hostData = new int[numElements];
+        hipMemcpy(hostData, devData, numElements * sizeof(*devData), hipMemcpyDeviceToHost);
+
+        // Print the array.
+        for (size_t i = 0; i < numElements; ++i) {
+            std::cout << "Element " << i << ": " << hostData[i] << std::endl;
+        }
 
         // Free the allocated memory.
         hipFreeAsync(devData, stream);
 
-        // Destroy the stream and release the pool.
+        // Synchronize the stream again to ensure all operations are complete.
+        hipStreamSynchronize(stream);
+
+        // Destroy the memory pool and stream.
+        hipMemPoolDestroy(memPool);
         hipStreamDestroy(stream);
-        hipFree(pool);
+
+        // Free host memory.
+        delete[] hostData;
 
         return 0;
     }
@@ -185,10 +230,13 @@ To improve performance, it is a good practice to adjust the memory pool size usi
 
     int main() {
         hipMemPool_t memPool;
-        hipDevice_t device = 0; // Specify the device index
+        hipDevice_t device = 0; // Specify the device index.
 
-        // Create a memory pool.
-        hipMemPoolCreate(&memPool, 0, 0);
+        // Initialize the device.
+        hipSetDevice(device);
+
+        // Get the default memory pool for the device.
+        hipDeviceGetDefaultMemPool(&memPool, device);
 
         // Allocate memory from the pool (e.g., 1 MB).
         size_t allocSize = 1 * 1024 * 1024;
@@ -209,7 +257,6 @@ To improve performance, it is a good practice to adjust the memory pool size usi
         return 0;
     }
 
-
 Resource usage statistics
 -------------------------
 
@@ -224,6 +271,7 @@ To reset these attributes to the current value, use ``hipMemPoolSetAttribute()``
 
 .. code-block:: cpp
 
+    #include <iostream>
     #include <hip/hip_runtime.h>
 
     // Sample helper functions for getting the usage statistics in bulk.
@@ -234,8 +282,7 @@ To reset these attributes to the current value, use ``hipMemPoolSetAttribute()``
         uint64_t usedMemHigh;
     };
 
-    void getUsageStatistics(hipMemoryPool_t memPool, struct usageStatistics *statistics)
-    {
+    void getUsageStatistics(hipMemPool_t memPool, struct usageStatistics *statistics) {
         hipMemPoolGetAttribute(memPool, hipMemPoolAttrReservedMemCurrent, &statistics->reservedMemCurrent);
         hipMemPoolGetAttribute(memPool, hipMemPoolAttrReservedMemHigh, &statistics->reservedMemHigh);
         hipMemPoolGetAttribute(memPool, hipMemPoolAttrUsedMemCurrent, &statistics->usedMemCurrent);
@@ -243,11 +290,59 @@ To reset these attributes to the current value, use ``hipMemPoolSetAttribute()``
     }
 
     // Resetting the watermarks resets them to the current value.
-    void resetStatistics(hipMemoryPool_t memPool)
-    {
+    void resetStatistics(hipMemPool_t memPool) {
         uint64_t value = 0;
         hipMemPoolSetAttribute(memPool, hipMemPoolAttrReservedMemHigh, &value);
         hipMemPoolSetAttribute(memPool, hipMemPoolAttrUsedMemHigh, &value);
+    }
+
+    int main() {
+        hipMemPool_t memPool;
+        hipDevice_t device = 0; // Specify the device index.
+
+        // Initialize the device.
+        hipSetDevice(device);
+
+        // Get the default memory pool for the device.
+        hipDeviceGetDefaultMemPool(&memPool, device);
+
+        // Allocate memory from the pool (e.g., 1 MB).
+        size_t allocSize = 1 * 1024 * 1024;
+        void* ptr;
+        hipMalloc(&ptr, allocSize);
+
+        // Free the allocated memory.
+        hipFree(ptr);
+
+        // Trim the memory pool to a specific size (e.g., 512 KB).
+        size_t newSize = 512 * 1024;
+        hipMemPoolTrimTo(memPool, newSize);
+
+        // Get and print usage statistics before resetting.
+        usageStatistics statsBefore;
+        getUsageStatistics(memPool, &statsBefore);
+        std::cout << "Before resetting statistics:" << std::endl;
+        std::cout << "Reserved Memory Current: " << statsBefore.reservedMemCurrent << " bytes" << std::endl;
+        std::cout << "Reserved Memory High: " << statsBefore.reservedMemHigh << " bytes" << std::endl;
+        std::cout << "Used Memory Current: " << statsBefore.usedMemCurrent << " bytes" << std::endl;
+        std::cout << "Used Memory High: " << statsBefore.usedMemHigh << " bytes" << std::endl;
+
+        // Reset the statistics.
+        resetStatistics(memPool);
+
+        // Get and print usage statistics after resetting.
+        usageStatistics statsAfter;
+        getUsageStatistics(memPool, &statsAfter);
+        std::cout << "After resetting statistics:" << std::endl;
+        std::cout << "Reserved Memory Current: " << statsAfter.reservedMemCurrent << " bytes" << std::endl;
+        std::cout << "Reserved Memory High: " << statsAfter.reservedMemHigh << " bytes" << std::endl;
+        std::cout << "Used Memory Current: " << statsAfter.usedMemCurrent << " bytes" << std::endl;
+        std::cout << "Used Memory High: " << statsAfter.usedMemHigh << " bytes" << std::endl;
+
+        // Clean up.
+        hipMemPoolDestroy(memPool);
+
+        return 0;
     }
 
 Memory reuse policies
@@ -283,6 +378,7 @@ To export data to share a memory pool pointer directly between processes, use ``
     #include <iostream>
     #include <fstream>
     #include <hip/hip_runtime.h>
+    #include <sys/stat.h>
 
     int main() {
         // Allocate memory.
@@ -323,20 +419,39 @@ Here is how to read the pool exported in the preceding example:
     #include <hip/hip_runtime.h>
 
     int main() {
-
         // Considering that you have exported the memory pool pointer already.
         // Now, let's simulate reading the exported data from a named pipe (FIFO).
         const char* fifoPath = "/tmp/myfifo"; // Change this to a unique path.
         std::ifstream fifoStream(fifoPath, std::ios::in | std::ios::binary);
+
+        if (!fifoStream.is_open()) {
+            std::cerr << "Error opening FIFO file: " << fifoPath << std::endl;
+            return 1;
+        }
 
         // Read the exported data.
         hipMemPoolPtrExportData importData;
         fifoStream.read(reinterpret_cast<char*>(&importData), sizeof(hipMemPoolPtrExportData));
         fifoStream.close();
 
+        if (fifoStream.fail()) {
+            std::cerr << "Error reading from FIFO file." << std::endl;
+            return 1;
+        }
+
+        // Create a memory pool with default properties.
+        hipMemPoolProps poolProps = {};
+        poolProps.allocType = hipMemAllocationTypePinned;
+        poolProps.handleTypes = hipMemHandleTypePosixFileDescriptor;
+        poolProps.location.type = hipMemLocationTypeDevice;
+        poolProps.location.id = 0; // Assuming device 0.
+
+        hipMemPool_t memPool;
+        hipMemPoolCreate(&memPool, &poolProps);
+
         // Import the memory pool pointer.
         void* importedDevPtr;
-        hipError_t result = hipMemPoolImportPointer(importData, &importedDevPtr);
+        hipError_t result = hipMemPoolImportPointer(&importedDevPtr, memPool, &importData);
         if (result != hipSuccess) {
             std::cerr << "Error imported memory pool pointer: " << hipGetErrorString(result) << std::endl;
             return 1;
@@ -361,15 +476,30 @@ To export a memory pool pointer to a shareable handle, use ``hipMemPoolExportToS
     #include <iostream>
     #include <fstream>
     #include <hip/hip_runtime.h>
+    #include <sys/stat.h>
 
     int main() {
-        // Allocate memory.
+        // Create a memory pool with default properties.
+        hipMemPoolProps poolProps = {};
+        poolProps.allocType = hipMemAllocationTypePinned;
+        poolProps.handleTypes = hipMemHandleTypePosixFileDescriptor;
+        poolProps.location.type = hipMemLocationTypeDevice;
+        poolProps.location.id = 0; // Assuming device 0.
+
+        hipMemPool_t memPool;
+        hipError_t poolResult = hipMemPoolCreate(&memPool, &poolProps);
+        if (poolResult != hipSuccess) {
+            std::cerr << "Error creating memory pool: " << hipGetErrorString(poolResult) << std::endl;
+            return 1;
+        }
+
+        // Allocate memory from the memory pool.
         void* devPtr;
-        hipMalloc(&devPtr, sizeof(int));
+        hipMallocFromPoolAsync(&devPtr, sizeof(int), memPool, 0);
 
         // Export the memory pool pointer.
-        hipMemPoolPtrExportData exportData;
-        hipError_t result = hipMemPoolExportToShareableHandle(&exportData, devPtr);
+        int descriptor;
+        hipError_t result = hipMemPoolExportToShareableHandle(&descriptor, memPool, hipMemHandleTypePosixFileDescriptor, 0);
         if (result != hipSuccess) {
             std::cerr << "Error exporting memory pool pointer: " << hipGetErrorString(result) << std::endl;
             return 1;
@@ -381,11 +511,12 @@ To export a memory pool pointer to a shareable handle, use ``hipMemPoolExportToS
 
         // Write the exported data to the named pipe.
         std::ofstream fifoStream(fifoPath, std::ios::out | std::ios::binary);
-        fifoStream.write(reinterpret_cast<char*>(&exportData), sizeof(hipMemPoolPtrExportData));
+        fifoStream.write(reinterpret_cast<char*>(&descriptor), sizeof(int));
         fifoStream.close();
 
         // Clean up.
         hipFree(devPtr);
+        hipMemPoolDestroy(memPool);
 
         return 0;
     }
@@ -404,23 +535,38 @@ To import a memory pool pointer from a shareable handle, which could be a file d
         const char* fifoPath = "/tmp/myfifo"; // Change this to a unique path
         std::ifstream fifoStream(fifoPath, std::ios::in | std::ios::binary);
 
-        // Read the exported data.
-        hipMemPoolPtrExportData importData;
-        fifoStream.read(reinterpret_cast<char*>(&importData), sizeof(hipMemPoolPtrExportData));
-        fifoStream.close();
-
-        // Import the memory pool pointer.
-        void* importedDevPtr;
-        hipError_t result = hipMemPoolImportFromShareableHandle(importData, &importedDevPtr);
-        if (result != hipSuccess) {
-            std::cerr << "Error importing memory pool pointer: " << hipGetErrorString(result) << std::endl;
+        if (!fifoStream.is_open()) {
+            std::cerr << "Error opening FIFO file: " << fifoPath << std::endl;
             return 1;
         }
+
+        // Read the exported data.
+        int descriptor;
+        fifoStream.read(reinterpret_cast<char*>(&descriptor), sizeof(int));
+        fifoStream.close();
+
+        if (fifoStream.fail()) {
+            std::cerr << "Error reading from FIFO file." << std::endl;
+            return 1;
+        }
+
+        // Import the memory pool.
+        hipMemPool_t memPool;
+        hipError_t result = hipMemPoolImportFromShareableHandle(&memPool, &descriptor, hipMemHandleTypePosixFileDescriptor, 0);
+        if (result != hipSuccess) {
+            std::cerr << "Error importing memory pool: " << hipGetErrorString(result) << std::endl;
+            return 1;
+        }
+
+        // Allocate memory from the imported memory pool.
+        void* importedDevPtr;
+        hipMallocFromPoolAsync(&importedDevPtr, sizeof(int), memPool, 0);
 
         // Now you can use the importedDevPtr for your computations.
 
         // Clean up (free the memory).
         hipFree(importedDevPtr);
+        hipMemPoolDestroy(memPool);
 
         return 0;
     }
