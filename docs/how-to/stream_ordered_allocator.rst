@@ -24,9 +24,9 @@ Disadvantages of SOMA:
 Using SOMA
 =====================================
 
-Users can allocate memory using ``hipMallocAsync()`` with stream-ordered semantics. This means that all asynchronous accesses to the allocation must occur between the stream executions of the allocation and the free. If memory is accessed outside of this promised stream order, it can lead to undefined behavior (e.g., use before allocation or use after free errors). The allocator may reallocate memory as long as it guarantees compliant memory accesses will not overlap temporally. ``hipFreeAsync()`` frees memory from the pool with stream-ordered semantics.
+You can allocate memory using ``hipMallocAsync()`` with stream-ordered semantics. This restricts the asynchronous accesses to the memory to occur between the stream executions of the allocation and deallocation. Accessing memory outside this promised stream order can lead to undefined behavior such as use-before-allocation or use-after-free errors. The allocator might reallocate memory as long as the compliant memory accesses are guaranteed not to overlap temporally. ``hipFreeAsync()`` frees memory from the pool with stream-ordered semantics.
 
-The following example explains how to use stream ordered memory allocation.
+Here is how to use stream ordered memory allocation:
 
 .. tab-set::
   .. tab-item:: Stream Ordered Memory Allocation
@@ -113,12 +113,12 @@ For more details, see :ref:`stream ordered allocator reference <stream-ordered-a
 Memory pools
 ============
 
-Memory pools provide a way to manage memory with stream-ordered behavior, ensuring proper synchronization and avoiding memory access errors. Division of a single memory system into separate pools allows querying the access path properties of each partition. Memory pools are used for host memory, device memory, and unified memory.
+Memory pools provide a way to manage memory with stream-ordered behavior while ensuring proper synchronization and avoiding memory access errors. Division of a single memory system into separate pools facilitates querying the access path properties for each partition. Memory pools are used for host memory, device memory, and unified memory.
 
 Set pools
 ---------
 
-The ``hipMallocAsync()`` function uses the current memory pool, while also providing the opportunity to create and use different pools with the ``hipMemPoolCreate()`` and ``hipMallocFromPoolAsync()`` functions respectively.
+The ``hipMallocAsync()`` function uses the current memory pool and also provides the opportunity to create and access different pools using ``hipMemPoolCreate()`` and ``hipMallocFromPoolAsync()`` functions respectively.
 
 Unlike NVIDIA CUDA, where stream-ordered memory allocation can be implicit, in AMD HIP, it's always explicit. This requires you to manage memory allocation for each stream in HIP while ensuring precise control over memory usage and synchronization.
 
@@ -168,15 +168,15 @@ Unlike NVIDIA CUDA, where stream-ordered memory allocation can be implicit, in A
 Trim pools
 ----------
 
-The memory allocator allows you to allocate and free memory in stream order. To control memory usage, the release threshold attribute can be set by ``hipMemPoolAttrReleaseThreshold``. This threshold specifies the amount of reserved memory in bytes that a pool should hold onto before attempting to release memory back to the operating system.
+The memory allocator allows you to allocate and free memory in stream order. To control memory usage, set the release threshold attribute using ``hipMemPoolAttrReleaseThreshold``.  This threshold specifies the amount of reserved memory in bytes to hold onto.
 
 .. code-block:: cpp
     uint64_t threshold = UINT64_MAX;
     hipMemPoolSetAttribute(memPool, hipMemPoolAttrReleaseThreshold, &threshold);
 
-When more than the specified threshold of bytes of memory are held by the memory pool, the allocator will try to release memory back to the operating system during the next call to stream, event, or context synchronization.
+When the amount of memory held in the memory pool exceeds the threshold, the allocator tries to release memory back to the operating system during the next call to stream, event, or context synchronization.
 
-For a better performance, it may be a good practice to adjust the memory pool size with ``hipMemPoolTrimTo()``. It can be useful to reclaim memory from a memory pool that is larger than necessary, optimizing memory usage for your application.
+To improve performance, it is a good practice to adjust the memory pool size using ``hipMemPoolTrimTo()``. It helps to reclaim memory from an excessive memory pool, which optimizes memory usage for your application.
 
 .. code-block:: cpp
 
@@ -213,14 +213,14 @@ For a better performance, it may be a good practice to adjust the memory pool si
 Resource usage statistics
 -------------------------
 
-Resource usage statistics can help in optimization. The following pool attributes to query memory usage:
+Resource usage statistics help in optimization. Here is the list of pool attributes used to query memory usage:
 
-- ``hipMemPoolAttrReservedMemCurrent`` returns the current total physical GPU memory consumed by the pool.
-- ``hipMemPoolAttrUsedMemCurrent`` returns the total size of all memory allocated from the pool.
-- ``hipMemPoolAttrReservedMemHigh`` returns the total physical GPU memory consumed by the pool since the last reset.
-- ``hipMemPoolAttrUsedMemHigh`` returns the all memory allocated from the pool since the last reset.
+- ``hipMemPoolAttrReservedMemCurrent``: Returns the total physical GPU memory currently held in the pool.
+- ``hipMemPoolAttrUsedMemCurrent``: Returns the total size of all the memory allocated from the pool.
+- ``hipMemPoolAttrReservedMemHigh``: Returns the total physical GPU memory held in the pool since the last reset.
+- ``hipMemPoolAttrUsedMemHigh``: Returns the total size of all the memory allocated from the pool since the last reset.
 
-You can reset them to the current value using the ``hipMemPoolSetAttribute()``.
+To reset these attributes to the current value, use ``hipMemPoolSetAttribute()``.
 
 .. code-block:: cpp
 
@@ -253,28 +253,30 @@ You can reset them to the current value using the ``hipMemPoolSetAttribute()``.
 Memory reuse policies
 ---------------------
 
-The allocator may reallocate memory as long as it guarantees that compliant memory accesses won't overlap temporally. Turning on and off the following memory pool reuse policy attribute flags can optimize the memory use:
+The allocator might reallocate memory as long as the compliant memory accesses are guaranteed not to overlap temporally. To optimize the memory usage, disable or enable the following memory pool reuse policy attribute flags:
 
-- ``hipMemPoolReuseFollowEventDependencies`` checks event dependencies before allocating additional GPU memory.
-- ``hipMemPoolReuseAllowOpportunistic`` checks freed allocations to determine if the stream order semantic indicated by the free operation has been met.
-- ``hipMemPoolReuseAllowInternalDependencies`` manages reuse based on internal dependencies in runtime. If the driver fails to allocate and map additional physical memory, it will search for memory that relies on another stream's pending progress and reuse it.
+- ``hipMemPoolReuseFollowEventDependencies``: Checks event dependencies before allocating additional GPU memory.
+- ``hipMemPoolReuseAllowOpportunistic``: Checks freed allocations to determine if the stream order semantic indicated by the free operation has been met.
+- ``hipMemPoolReuseAllowInternalDependencies``: Manages reuse based on internal dependencies in runtime. If the driver fails to allocate and map additional physical memory, it searches for memory waiting for another stream's progress and reuses it.
 
 Device accessibility for multi-GPU support
 ------------------------------------------
 
 Allocations are initially accessible only from the device where they reside.
 
-Inter-process memory handling
+Interprocess memory handling
 =============================
 
-Inter-process capable (IPC) memory pools facilitate efficient and secure sharing of GPU memory between processes.
+Interprocess capable (IPC) memory pools facilitate efficient and secure sharing of GPU memory between processes.
 
-There are two ways for inter-process memory sharing: pointer sharing or shareable handles. Both have allocator (export) and consumer (import) interface.
+To achieve interprocess memory sharing, you can use either :ref:`device pointer <device-pointer>` or :ref:`shareable handle <shareable-handle>`. Both provide allocator (export) and consumer (import) interfaces.
+
+.. _device-pointer:
 
 Device pointer
 --------------
 
-The ``hipMemPoolExportPointer()`` function allows to export data to share a memory pool pointer directly between processes. It is useful to share a memory allocation with another process.
+To export data to share a memory pool pointer directly between processes, use ``hipMemPoolExportPointer()``. It allows you to share a memory allocation with another process.
 
 .. code-block:: cpp
 
@@ -310,9 +312,9 @@ The ``hipMemPoolExportPointer()`` function allows to export data to share a memo
         return 0;
     }
 
-The ``hipMemPoolImportPointer()`` function allows to import a memory pool pointer directly from another process.
+To import a memory pool pointer directly from another process, use ``hipMemPoolImportPointer()``.
 
-The example code to read the exported pool based on the previous example is the following:
+Here is how to read the pool exported in the preceding example:
 
 .. code-block:: cpp
 
@@ -348,10 +350,11 @@ The example code to read the exported pool based on the previous example is the 
         return 0;
     }
 
+.. _shareable-handle:
 Shareable handle
 ----------------
 
-The ``hipMemPoolExportToSharedHandle()`` is used to export a memory pool pointer to a shareable handle. This handle can be a file descriptor or a handle obtained from another process. The exported handle contains information about the memory pool, including its size, location, and other relevant details.
+To export a memory pool pointer to a shareable handle, use ``hipMemPoolExportToSharedHandle()``. This handle could be a file descriptor or a handle obtained from another process. The exported handle contains information about the memory pool, such as size, location, and other relevant details.
 
 .. code-block:: cpp
 
@@ -387,7 +390,7 @@ The ``hipMemPoolExportToSharedHandle()`` is used to export a memory pool pointer
         return 0;
     }
 
-The ``hipMemPoolImportFromShareableHandle()`` function is used to import a memory pool pointer from a shareable handle -- such as a file descriptor or a handle obtained from another process. It allows to restore a memory pool pointer that was previously exported using ``hipMemPoolExportPointer()`` or a similar mechanism. The exported shareable handle data contains information about the memory pool, including its size, location, and other relevant details. After importing, valid memory pointer is received that points to the same memory area. Useful for inter-process communication or sharing memory across different contexts.
+To import a memory pool pointer from a shareable handle, which could be a file descriptor or a handle obtained from another process, use ``hipMemPoolImportFromShareableHandle()``. This function allows you to restore a memory pool pointer exported using ``hipMemPoolExportPointer()`` or a similar mechanism. The exported shareable handle data contains information about the memory pool, including its size, location, and other relevant details. Importing the handle provides a valid memory pointer to the same memory, which allows you to share memory across different contexts.
 
 .. code-block:: cpp
 
