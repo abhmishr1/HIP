@@ -521,7 +521,7 @@ To export a memory pool pointer to a shareable handle, use ``hipMemPoolExportToS
         return 0;
     }
 
-To import a memory pool pointer from a shareable handle, which could be a file descriptor or a handle obtained from another process, use ``hipMemPoolImportFromShareableHandle()``. This function allows you to restore a memory pool pointer exported using ``hipMemPoolExportPointer()`` or a similar mechanism. The exported shareable handle data contains information about the memory pool, including its size, location, and other relevant details. Importing the handle provides a valid memory pointer to the same memory, which allows you to share memory across different contexts.
+To import and restore a memory pool pointer from a shareable handle, which could be a file descriptor or a handle obtained from another process, use ``hipMemPoolImportFromShareableHandle()``. The exported shareable handle data contains information about the memory pool, including its size, location, and other relevant details. Importing the handle provides a valid memory pointer to the same memory, which allows you to share memory across different contexts.
 
 .. code-block:: cpp
 
