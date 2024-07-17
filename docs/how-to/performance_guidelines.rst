@@ -4,24 +4,22 @@
   :keywords: AMD, ROCm, HIP, CUDA, performance, guidelines
 
 *******************************************************************************
-Performance Guidelines
+Performance guidelines
 *******************************************************************************
 
-The AMD HIP Performance Guidelines are a set of best practices designed to help
-developers optimize the performance of their codes for AMD GPUs. They cover
-established parallelization and optimization techniques that can greatly
-improving performance for HIP-capable GPU architectures.
+The AMD HIP performance guidelines are a set of best practices designed to help
+you optimize the application performance on AMDGPUs. The guidelines discuss
+established parallelization and optimization techniques to improve the application performance on HIP-capable GPU architectures.
 
-By following four main cornerstones, we can exploit the performance
-optimization potential of HIP.
+Here are the four main cornerstones to help you exploit HIP's performance
+optimization potential:
 
-- parallel execution
+- Parallel execution
 - memory bandwidth usage optimization
 - optimization for maximum throughput
 - minimizing memory thrashing
 
-In the following chapters, we will show you their benefits and how to use them
-effectively.
+This document discusses the usage and benefits of these cornerstones in detail.
 
 .. _parallel execution:
 Parallel execution
@@ -33,22 +31,20 @@ parallelism as possible to keep all system components busy.
 Application level
 -------------------
 
-The application should optimize parallel execution across the host and devices
-using asynchronous calls and streams. Workloads should be assigned based on
-efficiency: serial to the host, parallel to the devices.
+To enable parallel execution of the application across the host and devices, use asynchronous calls and streams. Assign workloads based on efficiency: serial to the host or parallel to the devices.
 
-For parallel workloads, when threads need to synchronize to share data, if they
-belong to the same block, use ``__syncthreads()`` (see:
-:ref:`synchronization functions`) within the same kernel invocation. If they
-belong to different blocks, they must use global memory with two separate
-kernel invocations. The latter should be minimized as it adds overhead.
+For parallel workloads, when threads belonging to the same block need to synchronize to share data,
+use ``__syncthreads()`` (see:
+:ref:`synchronization functions`) within the same kernel invocation. For threads
+belonging to different blocks, use global memory with two separate
+kernel invocations. It is recommended to avoid the latter approach as it adds overhead.
 
 Device level
 --------------
 
 Device level optimization primarily involves maximizing parallel execution
-across the multiprocessors of the device. This can be achieved by executing
-multiple kernels concurrently on a device. The management of these kernels is
+across the multiprocessors on the device. You can achieve device level optimization by executing
+multiple kernels concurrently on a device. To enhance performance, the management of these kernels is
 facilitated by streams, which allow for the overlapping of computation and data
 transfers, enhancing performance. The aim is to keep all multiprocessors busy
 by executing enough kernels concurrently. However, launching too many kernels
@@ -62,17 +58,17 @@ Multiprocessor level
 Multiprocessor level optimization involves maximizing parallel execution within
 each multiprocessor on a device. The key to multiprocessor level optimization
 is to efficiently utilize the various functional units within a multiprocessor.
-For example ensure a sufficient number of resident warps, so that every clock
-cycle an instruction from a warp is ready for execution. This instruction can
-be another independent instruction of the same warp, exploiting
-:ref:`instruction level optimization<instruction-level parallelism>`, or more
-commonly an instruction of another warp, exploiting thread-level parallelism.
+For example, ensuring a sufficient number of resident warps, so that every clock
+cycle has an instruction from a warp is ready for execution. This instruction could
+either be another independent instruction of the same warp, which exploits
+:ref:`instruction level optimization <instruction-level parallelism>`, or more
+commonly an instruction of another warp, which exploits thread-level parallelism.
 
-In comparison, device level optimization focuses on the device as a whole,
-aiming to keep all multiprocessors busy by executing enough kernels
-concurrently. Both levels of optimization are crucial for achieving maximum
+On the other hand, device level optimization focuses on the device as a whole,
+aiming at keeping all multiprocessors busy by executing enough kernels
+concurrently. Both multiprocessor and device levels of optimization are crucial for achieving maximum
 performance. They work together to ensure efficient utilization of the
-resources of the GPU, from the individual multiprocessors to the device as a
+GPU resources, ranging from individual multiprocessors to the device as a
 whole.
 
 .. _memory optimization:
@@ -92,16 +88,16 @@ block, processing the data which is stored in shared memory, synchronizing
 again if necessary, and writing the results back to device global memory.
 
 For some applications, a traditional hardware-managed cache is more appropriate
-to exploit data locality.
+for exploiting data locality.
 
-Finally, the throughput of memory accesses by a kernel can vary significantly
+In conclusion, the throughput of memory accesses by a kernel can vary significantly
 depending on the access pattern. Therefore, the next step in maximizing memory
 throughput is to organize memory accesses as optimally as possible. This is
 especially important for global memory accesses, as global memory bandwidth is
 low compared to available on-chip bandwidths and arithmetic instruction
 throughput. Thus, non-optimal global memory accesses generally have a high
 impact on performance.
-
+The memory throughput optimization techniques are further discussed in detail in the following sections.
 .. _data transfer:
 Data Transfer
 ---------------
@@ -120,29 +116,27 @@ When using mapped page-locked memory, there is no need to allocate device
 memory or explicitly copy data between device and host memory. Data transfers
 occur implicitly each time the kernel accesses the mapped memory. For optimal
 performance, these memory accesses should be coalesced, similar to global
-memory accesses. When threads in a warp access sequential memory locations, a
-process known as coalesced memory access, it can enhance the efficiency of
-memory data transfer.
+memory accesses. The process where threads in a warp access sequential memory locations is known as coalesced memory access, which can enhance memory data transfer efficiency.
 
-On integrated systems where device and host memory are physically the same,
-any copy operation between host and device memory is unnecessary, and mapped
-page-locked memory should be used instead. Applications can check if a device
-is integrated by querying the integrated device property.
+On integrated systems where device and host memory are physically the same, no copy operation between host and device memory is required and hence mapped page-locked memory should be used instead. To check if the device is integrated, applications can query the integrated device property.
 
 .. _device memory access:
 Device Memory Access
 ---------------------
 
-Memory access instructions may be repeated due to the spread of memory
+Memory access instructions might be repeated due to the spread of memory
 addresses across warp threads. The impact on throughput varies with memory type
 and is generally reduced when addresses are more scattered, especially in
 global memory.
 
 Device memory is accessed via 32-, 64-, or 128-byte transactions that must be
-naturally aligned. Maximizing memory throughput involves coalescing memory
-(see: :ref:`data transfer`) accesses of threads within a warp into minimal
-transactions, following optimal access patterns, using properly sized and
-aligned data types, and padding data when necessary.
+naturally aligned. 
+Maximizing memory throughput involves:
+- Coalescing memory accesses of threads within a warp into minimal
+transactions.
+- Following optimal access patterns.
+- Using properly sized and aligned data types.
+- Padding data when necessary.
 
 Global memory instructions support reading or writing data of specific sizes
 (1, 2, 4, 8, or 16 bytes) that are naturally aligned. If the size and alignment
@@ -192,9 +186,11 @@ Optimization for maximum instruction throughput
 
 To maximize instruction throughput:
 
-- minimize low throughput arithmetic instructions
-- minimize divergent warps inflicted by control flow instructions
-- maximize instruction parallelism
+- Minimize low throughput arithmetic instructions.
+- Minimize divergent warps inflicted by flow control instructions.
+- Maximize instruction parallelism.
+
+These techniques are discussed in detail in the following sections.
 
 Arithmetic instructions
 -------------------------
@@ -234,12 +230,10 @@ loops or short if or switch blocks using branch predication, preventing warp
 divergence. With branch predication, instructions associated with a false
 predicate are scheduled but not executed, avoiding unnecessary operations.
 
-Avoiding divergent warps: Divergent warps occur when threads within the same
-warp follow different execution paths. This can happen due to conditional
-statements that lead to different arithmetic operations being performed by
-different threads. Divergent warps can significantly reduce instruction
-throughput, so try to structure your code to minimize divergence.
+Avoiding divergent warps
+..........................................................
 
+Warps diverge when threads within the same warp follow different execution paths. This is caused by conditional statements that lead to different arithmetic operations being performed by different threads. Divergent warps can significantly reduce instruction throughput, so it is advisable to structure your code to minimize divergence.
 Synchronization
 ----------------
 
@@ -249,8 +243,8 @@ threads depend on the results of other threads. However, synchronization can
 also lead to performance overhead, as it requires threads to wait, potentially
 leading to idle GPU resources.
 
-``__syncthreads()`` is used to synchronize all threads in a block, ensuring
-that all threads have reached the same point in the code and that shared memory
+To synchronize all threads in a block, use ``__syncthreads()``. ``__syncthreads()`` ensures
+that, all threads reach the same point in the code and can access shared memory after reaching that point.
 is visible to all threads after the point of synchronization.
 
 An alternative way to synchronize is using streams. Different streams can
