@@ -77,14 +77,12 @@ Memory throughput optimization
 The first step in maximizing memory throughput is to minimize low-bandwidth
 data transfers between the host and the device.
 
-Additionally loads from and stores to global memory should be minimized by
-maximizing the use of on-chip memory: shared memory and caches. Shared memory
-acts as a user-managed cache, where the application explicitly allocates and
-accesses it. A common programming pattern is to stage data from device memory
-into shared memory. This involves each thread of a block loading data from
-device memory to shared memory, synchronizing with all other threads of the
-block, processing the data which is stored in shared memory, synchronizing
-again if necessary, and writing the results back to device global memory.
+Additionally, maximize the use of on-chip memory, that is, shared memory and caches, and minimize transfers with global memory. Shared memory acts as a user-managed cache explicitly allocated and accessed by the application. A common programming pattern is to stage data from device memory into shared memory. The staging of data from the device to shared memory involves:
+1. Each thread of a block loading data from device memory to shared memory.
+2. Synchronizing with all other threads of the block.
+3. Processing the data stored in shared memory.
+4. Synchronizing again if necessary.
+5. Writing the results back to the device global memory.
 
 For some applications, a traditional hardware-managed cache is more appropriate
 for exploiting data locality.
