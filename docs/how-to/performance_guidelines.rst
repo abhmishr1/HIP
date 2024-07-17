@@ -45,11 +45,7 @@ Device level
 Device level optimization primarily involves maximizing parallel execution
 across the multiprocessors on the device. You can achieve device level optimization by executing
 multiple kernels concurrently on a device. To enhance performance, the management of these kernels is
-facilitated by streams, which allow for the overlapping of computation and data
-transfers, enhancing performance. The aim is to keep all multiprocessors busy
-by executing enough kernels concurrently. However, launching too many kernels
-can lead to resource contention, so a balance must be found for optimal
-performance. This approach helps in achieving maximum utilization of the device resources.
+facilitated by streams, which allows overlapping of computation and data transfers. This approach aims at keeping all multiprocessors busy by executing enough kernels concurrently. However, launching too many kernels can lead to resource contention, hence a balance must be found for optimal performance. The device level optimization helps in achieving maximum utilization of the device resources.
 
 Multiprocessor level
 ----------------------
@@ -95,15 +91,12 @@ low compared to available on-chip bandwidths and arithmetic instruction
 throughput. Thus, non-optimal global memory accesses generally have a high
 impact on performance.
 The memory throughput optimization techniques are further discussed in detail in the following sections.
+
 .. _data transfer:
 Data Transfer
 ---------------
 
-Applications should aim to minimize data transfers between the host and the
-device. This can be achieved by moving more computations from the host to the
-device, even if it means running kernels that do not fully utilize the
-parallelism for device. Intermediate data structures can be created, used,
-and discarded in device memory without being mapped or copied to host memory.
+To minimize data transfers between the host and the device, applications should move more computations from the host to the device, even at the cost of running kernels that don't fully utilize parallelism for the device. Intermediate data structures should be created, used, and discarded in device memory without being mapped or copied to host memory.
 
 Batching small transfers into a single large transfer can improve performance
 due to the overhead associated with each transfer. On systems with a front-side
@@ -135,12 +128,10 @@ transactions.
 - Using properly sized and aligned data types.
 - Padding data when necessary.
 
-Global memory instructions support reading or writing data of specific sizes
-(1, 2, 4, 8, or 16 bytes) that are naturally aligned. If the size and alignment
-requirements are not met, it leads to multiple instructions, reducing
-performance. Therefore, using data types that meet these requirements, ensuring
-alignment for structures, and maintaining alignment for all values or arrays is
-crucial for correct results and optimal performance.
+Global memory instructions support reading or writing data of specific sizes (1, 2, 4, 8, or 16 bytes) that are naturally aligned. Not meeting the size and alignment requirements leads to multiple instructions, which reduces performance. Therefore, for correct results and optimal performance:
+- Use data types that meet these requirements
+- Ensure alignment for structures
+- Maintain alignment for all values or arrays.
 
 Threads often access 2D arrays at an address calculated as
 ``BaseAddress + xIndex + width * yIndex``. For efficient memory access, the
@@ -149,28 +140,16 @@ array width is not a multiple of the warp size, it is usually more efficient to
 allocate it with a width rounded up to the nearest multiple and pad the rows
 accordingly.
 
-Local memory is used for certain automatic variables, such as arrays with
-non-constant indices, large structures or arrays, and any variable when the
-kernel uses more registers than available. Local memory resides in device
-memory, leading to high latency and low bandwidth similar to global memory
-accesses. However, it is organized for consecutive 32-bit words to be accessed
-by consecutive thread IDs, allowing full coalescing when all threads in a warp
-access the same relative address.
+Local memory is used for certain automatic variables, such as arrays with non-constant indices, large structures of arrays, and any variable where the kernel uses more registers than available. Local memory resides in device memory, which leads to high latency and low bandwidth, similar to global memory accesses. However, the local memory is organized for consecutive 32-bit words to be accessed by consecutive thread IDs, which allows full coalescing when all threads in a warp access the same relative address.
 
-Shared memory, located on-chip, provides higher bandwidth and lower latency
-than local or global memory. It is divided into banks that can be
-simultaneously accessed, boosting bandwidth. However, bank conflicts, where two
-addresses fall in the same bank, lead to serialized access and decreased
-throughput. Therefore, understanding how memory addresses map to banks and
-scheduling requests to minimize conflicts is crucial for optimal performance.
+Shared memory is located on-chip and provides higher bandwidth and lower latency than local or global memory. It is divided into banks that can be simultaneously accessed, which boosts bandwidth. However, bank conflicts, where two addresses fall in the same bank, lead to serialized access and decreased throughput. Therefore, understanding how memory addresses map to banks and scheduling requests to minimize conflicts is crucial for optimal performance.
 
-Constant memory is in device memory and cached in the constant cache. Requests
-are split based on different memory addresses, affecting throughput, and are
-serviced at the throughput of the constant cache for cache hits, or the
-throughput of the device memory otherwise.
+Constant memory is in the device memory and cached in the constant cache. Requests are split based on different memory addresses and are
+serviced based either on the throughput of the constant cache for cache hits or on the throughput of the device memory otherwise. This splitting of requests affects throughput.
 
-Texture and surface memory are stored in the device memory and cached in the texture cache. This setup optimizes 2D spatial locality, which leads to better performance for threads reading close 2D addresses. 
+Texture and surface memory are stored in the device memory and cached in the texture cache. This setup optimizes 2D spatial locality, which leads to better performance for threads reading close 2D addresses.
 Reading device memory through texture or surface fetching provides the following advantages:
+
 - Higher bandwidth for local texture fetches or surface reads.
 - Offloading addressing calculation.
 - Data broadcasting.
