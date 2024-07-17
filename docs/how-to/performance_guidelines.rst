@@ -8,16 +8,16 @@ Performance guidelines
 *******************************************************************************
 
 The AMD HIP performance guidelines are a set of best practices designed to help
-you optimize the application performance on AMDGPUs. The guidelines discuss
+you optimize the application performance on AMD GPUs. The guidelines discuss
 established parallelization and optimization techniques to improve the application performance on HIP-capable GPU architectures.
 
 Here are the four main cornerstones to help you exploit HIP's performance
 optimization potential:
 
 - Parallel execution
-- memory bandwidth usage optimization
-- optimization for maximum throughput
-- minimizing memory thrashing
+- Memory bandwidth usage optimization
+- Maximum throughput optimization
+- Memory thrashing minimization
 
 This document discusses the usage and benefits of these cornerstones in detail.
 
@@ -25,8 +25,8 @@ This document discusses the usage and benefits of these cornerstones in detail.
 Parallel execution
 ====================
 
-For optimal use, the application should reveal and efficiently provide as much
-parallelism as possible to keep all system components busy.
+For optimal use and to keep all system components busy, the application must reveal and efficiently provide as much parallelism as possible.
+The parallelism can be performed at the application level, device level, and multiprocessor level.
 
 Application level
 -------------------
@@ -49,8 +49,7 @@ facilitated by streams, which allow for the overlapping of computation and data
 transfers, enhancing performance. The aim is to keep all multiprocessors busy
 by executing enough kernels concurrently. However, launching too many kernels
 can lead to resource contention, so a balance must be found for optimal
-performance. This approach helps in achieving maximum utilization of the
-resources of the device.
+performance. This approach helps in achieving maximum utilization of the device resources.
 
 Multiprocessor level
 ----------------------
@@ -172,13 +171,12 @@ are split based on different memory addresses, affecting throughput, and are
 serviced at the throughput of the constant cache for cache hits, or the
 throughput of the device memory otherwise.
 
-Texture and surface memory are stored in device memory and cached in texture
-cache. This setup optimizes 2D spatial locality, leading to better performance
-for threads reading close 2D addresses. Reading device memory through texture
-or surface fetching can be advantageous, offering higher bandwidth for local
-texture fetches or surface reads, offloading addressing calculations,
-allowing data broadcasting, and optional conversion of 8-bit and 16-bit integer
-input data to 32-bit floating-point values on-the-fly.
+Texture and surface memory are stored in the device memory and cached in the texture cache. This setup optimizes 2D spatial locality, which leads to better performance for threads reading close 2D addresses. 
+Reading device memory through texture or surface fetching provides the following advantages:
+- Higher bandwidth for local texture fetches or surface reads.
+- Offloading addressing calculation.
+- Data broadcasting.
+- Optional conversion of 8-bit and 16-bit integer input data to 32-bit floating-point values on the fly.
 
 .. _instruction optimization:
 Optimization for maximum instruction throughput
@@ -199,36 +197,19 @@ The type and complexity of arithmetic operations can significantly impact the
 performance of your application. We are highlighting some hints how to maximize
 it.
 
-Using efficient operations: Some arithmetic operations are more costly than
-others. For example, multiplication is typically faster than division, and
-integer operations are usually faster than floating-point operations,
-especially with double-precision.
+Use efficient operations: Some arithmetic operations are costlier than others. For example, multiplication is typically faster than division, and integer operations are usually faster than floating-point operations, especially with double precision.
 
-Minimizing low-throughput instructions: This might involve trading precision
-for speed when it does not affect the final result. For instance, consider
-using single-precision arithmetic instead of double-precision.
+Minimize low-throughput instructions: This might involve trading precision for speed when it does not affect the final result. For instance, consider using single-precision arithmetic instead of double-precision.
 
-Leverage intrinsic functions: Intrinsic functions are pre-defined functions
-available in HIP that can often be executed faster than equivalent arithmetic
-operations (subject to some input or accuracy restrictions). They can help
-optimize performance by replacing more complex arithmetic operations.
+Leverage intrinsic functions: Intrinsic functions are pre-defined functions available in HIP that can often be executed faster than equivalent arithmetic operations (subject to some input or accuracy restrictions). They can help optimize performance by replacing more complex arithmetic operations.
 
-Optimizing memory access: The efficiency of memory access can impact the speed
-of arithmetic operations. See: :ref:`device memory access`.
+Optimize memory access: The memory access efficiency can impact the speed of arithmetic operations. See: :ref:`device memory access`.
 
 .. _control flow instructions:
 Control flow instructions
 ---------------------------
 
-Flow control instructions (``if``, ``else``, ``for``, ``do``, ``while``,
-``break``, ``continue``, ``switch``) can impact instruction throughput by
-causing threads within a warp to diverge and follow different execution paths.
-To optimize performance, control conditions should be written to minimize
-divergent warps. For example, when the control condition depends on
-(``threadIdx`` / ``warpSize``), no warp diverges. The compiler may optimize
-loops or short if or switch blocks using branch predication, preventing warp
-divergence. With branch predication, instructions associated with a false
-predicate are scheduled but not executed, avoiding unnecessary operations.
+Control flow instructions (``if``, ``else``, ``for``, ``do``, ``while``, ``break``, ``continue``, ``switch``) can impact instruction throughput by causing threads within a warp to diverge and follow different execution paths. To optimize performance, write control conditions to minimize divergent warps. For example, when the control condition depends on ``threadIdx`` or ``warpSize``, warp doesn't diverge. The compiler might optimize loops, short ifs, or switch blocks using branch predication, which prevents warp divergence. With branch predication, instructions associated with a false predicate are scheduled but not executed, which avoids unnecessary operations.
 
 Avoiding divergent warps
 ..........................................................
@@ -237,43 +218,20 @@ Warps diverge when threads within the same warp follow different execution paths
 Synchronization
 ----------------
 
-Synchronization ensures that all threads within a block have completed their
-computations and memory accesses before moving forward, which is critical when
-threads depend on the results of other threads. However, synchronization can
-also lead to performance overhead, as it requires threads to wait, potentially
-leading to idle GPU resources.
+Synchronization ensures that all threads within a block complete their computations and memory accesses before moving forward, which is critical when threads depend on other thread results. However, synchronization can also lead to performance overhead, as it needs the threads to wait, which might lead to idle GPU resources.
 
 To synchronize all threads in a block, use ``__syncthreads()``. ``__syncthreads()`` ensures
 that, all threads reach the same point in the code and can access shared memory after reaching that point.
 is visible to all threads after the point of synchronization.
 
-An alternative way to synchronize is using streams. Different streams can
-execute commands out of order with respect to one another or concurrently. This
-allows for more fine-grained control over the execution order of commands,
-which can be beneficial in certain scenarios.
+An alternative way to synchronize is to use streams. Different streams can execute commands either without following a specific order or concurrently. This is why streams allow more fine-grained control over the execution order of commands, which can be beneficial in certain scenarios.
 
 Minimizing memory thrashing
 ============================
 
-Applications frequently allocating and freeing memory may experience slower
-allocation calls over time. This is expected as memory is released back to the
-operating system. To optimize performance in such scenarios, consider some
-recommendations:
+Applications frequently allocating and freeing memory might experience slower allocation calls over time as memory is released back to the operating system. To optimize performance in such scenarios, follow these guidelines:
 
-- avoid allocating all available memory with ``hipMalloc`` / ``hipHostMalloc``,
-  as this immediately reserves memory and can block other applications from
-  using it. This could strain the operating system schedulers or even prevent
-  other applications from running on the same GPU.
-- aim to allocate memory in suitably sized blocks early in the lifecycle of the
-  application and deallocate only when the application no longer needs it.
-  Minimize the number of ``hipMalloc`` and ``hipFree`` calls in your
-  application, particularly in areas critical to performance.
-- if an application is unable to allocate sufficient device memory, consider
-  resorting to other memory types such as ``hipHostMalloc`` or
-  ``hipMallocManaged``. While these may not offer the same performance, they
-  can allow the application to continue running.
-- For supported platforms, ``hipMallocManaged`` allows for oversubscription.
-  With the right memory advise policies, it can maintain most, if not all, of
-  the performance of ``hipMalloc``. ``hipMallocManaged`` does not require an
-  allocation to be resident until it is needed or prefetched, easing the load
-  on the operating system schedulers and facilitating multi-tenant scenarios.
+- Avoid allocating all available memory with ``hipMalloc`` or ``hipHostMalloc``, as this immediately reserves memory and might prevent other applications from using it. This could strain the operating system schedulers or prevent other applications from running on the same GPU.
+- Try to allocate memory in suitably sized blocks early in the application's lifecycle and deallocate only when the application doesn't need it anymore. Minimize the number of ``hipMalloc`` and ``hipFree`` calls in your application, particularly in performance-critical areas.
+- Consider resorting to other memory types such as ``hipHostMalloc`` or ``hipMallocManaged``, if an application can't allocate sufficient device memory. While the other memory types might not offer similar performance, they allow the application to continue running.
+- For supported platforms, use ``hipMallocManaged``, as it allows oversubscription. With the right policies, ``hipMallocManaged`` can maintain most, if not all, ``hipMalloc`` performance. ``hipMallocManaged`` doesn't require an allocation to be resident until it is needed or prefetched, which eases the load on the operating system's schedulers and facilitates multi-tenant scenarios.
