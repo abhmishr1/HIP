@@ -202,7 +202,6 @@ Synchronization ensures that all threads within a block complete their computati
 
 To synchronize all threads in a block, use ``__syncthreads()``. ``__syncthreads()`` ensures
 that, all threads reach the same point in the code and can access shared memory after reaching that point.
-is visible to all threads after the point of synchronization.
 
 An alternative way to synchronize is to use streams. Different streams can execute commands either without following a specific order or concurrently. This is why streams allow more fine-grained control over the execution order of commands, which can be beneficial in certain scenarios.
 
