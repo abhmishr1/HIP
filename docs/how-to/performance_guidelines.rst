@@ -73,7 +73,8 @@ Memory throughput optimization
 The first step in maximizing memory throughput is to minimize low-bandwidth
 data transfers between the host and the device.
 
-Additionally, maximize the use of on-chip memory, that is, shared memory and caches, and minimize transfers with global memory. Shared memory acts as a user-managed cache explicitly allocated and accessed by the application. A common programming pattern is to stage data from device memory into shared memory. The staging of data from the device to shared memory involves:
+Additionally, maximize the use of on-chip memory, that is, shared memory and caches, and minimize transfers with global memory. Shared memory acts as a user-managed cache explicitly allocated and accessed by the application. A common programming pattern is to stage data from device memory into shared memory. The staging of data from the device to shared memory involves the following steps:
+
 1. Each thread of a block loading data from device memory to shared memory.
 2. Synchronizing with all other threads of the block.
 3. Processing the data stored in shared memory.
@@ -93,7 +94,7 @@ impact on performance.
 The memory throughput optimization techniques are further discussed in detail in the following sections.
 
 .. _data transfer:
-Data Transfer
+Data transfer
 ---------------
 
 To minimize data transfers between the host and the device, applications should move more computations from the host to the device, even at the cost of running kernels that don't fully utilize parallelism for the device. Intermediate data structures should be created, used, and discarded in device memory without being mapped or copied to host memory.
@@ -111,7 +112,7 @@ memory accesses. The process where threads in a warp access sequential memory lo
 On integrated systems where device and host memory are physically the same, no copy operation between host and device memory is required and hence mapped page-locked memory should be used instead. To check if the device is integrated, applications can query the integrated device property.
 
 .. _device memory access:
-Device Memory Access
+Device memory access
 ---------------------
 
 Memory access instructions might be repeated due to the spread of memory
@@ -122,13 +123,14 @@ global memory.
 Device memory is accessed via 32-, 64-, or 128-byte transactions that must be
 naturally aligned. 
 Maximizing memory throughput involves:
-- Coalescing memory accesses of threads within a warp into minimal
-transactions.
+
+- Coalescing memory accesses of threads within a warp into minimal transactions.
 - Following optimal access patterns.
 - Using properly sized and aligned data types.
 - Padding data when necessary.
 
 Global memory instructions support reading or writing data of specific sizes (1, 2, 4, 8, or 16 bytes) that are naturally aligned. Not meeting the size and alignment requirements leads to multiple instructions, which reduces performance. Therefore, for correct results and optimal performance:
+
 - Use data types that meet these requirements
 - Ensure alignment for structures
 - Maintain alignment for all values or arrays.
@@ -137,7 +139,7 @@ Threads often access 2D arrays at an address calculated as
 ``BaseAddress + xIndex + width * yIndex``. For efficient memory access, the
 array and thread block widths should be multiples of the warp size. If the
 array width is not a multiple of the warp size, it is usually more efficient to
-allocate it with a width rounded up to the nearest multiple and pad the rows
+allocate the array with a width rounded up to the nearest multiple and pad the rows
 accordingly.
 
 Local memory is used for certain automatic variables, such as arrays with non-constant indices, large structures of arrays, and any variable where the kernel uses more registers than available. Local memory resides in device memory, which leads to high latency and low bandwidth, similar to global memory accesses. However, the local memory is organized for consecutive 32-bit words to be accessed by consecutive thread IDs, which allows full coalescing when all threads in a warp access the same relative address.
@@ -178,7 +180,7 @@ Use efficient operations: Some arithmetic operations are costlier than others. F
 
 Minimize low-throughput instructions: This might involve trading precision for speed when it does not affect the final result. For instance, consider using single-precision arithmetic instead of double-precision.
 
-Leverage intrinsic functions: Intrinsic functions are pre-defined functions available in HIP that can often be executed faster than equivalent arithmetic operations (subject to some input or accuracy restrictions). They can help optimize performance by replacing more complex arithmetic operations.
+Leverage intrinsic functions: Intrinsic functions are predefined functions available in HIP that can often be executed faster than equivalent arithmetic operations (subject to some input or accuracy restrictions). They can help optimize performance by replacing more complex arithmetic operations.
 
 Optimize memory access: The memory access efficiency can impact the speed of arithmetic operations. See: :ref:`device memory access`.
 
@@ -192,10 +194,11 @@ Avoiding divergent warps
 ..........................................................
 
 Warps diverge when threads within the same warp follow different execution paths. This is caused by conditional statements that lead to different arithmetic operations being performed by different threads. Divergent warps can significantly reduce instruction throughput, so it is advisable to structure your code to minimize divergence.
+
 Synchronization
 ----------------
 
-Synchronization ensures that all threads within a block complete their computations and memory accesses before moving forward, which is critical when threads depend on other thread results. However, synchronization can also lead to performance overhead, as it needs the threads to wait, which might lead to idle GPU resources.
+Synchronization ensures that all threads within a block complete their computations and memory accesses before moving forward, which is critical when threads depend on other thread results. However, synchronization can also cause performance overhead, as it needs the threads to wait, which might lead to idle GPU resources.
 
 To synchronize all threads in a block, use ``__syncthreads()``. ``__syncthreads()`` ensures
 that, all threads reach the same point in the code and can access shared memory after reaching that point.
@@ -208,7 +211,7 @@ Minimizing memory thrashing
 
 Applications frequently allocating and freeing memory might experience slower allocation calls over time as memory is released back to the operating system. To optimize performance in such scenarios, follow these guidelines:
 
-- Avoid allocating all available memory with ``hipMalloc`` or ``hipHostMalloc``, as this immediately reserves memory and might prevent other applications from using it. This could strain the operating system schedulers or prevent other applications from running on the same GPU.
-- Try to allocate memory in suitably sized blocks early in the application's lifecycle and deallocate only when the application doesn't need it anymore. Minimize the number of ``hipMalloc`` and ``hipFree`` calls in your application, particularly in performance-critical areas.
+- Avoid allocating all available memory with ``hipMalloc`` or ``hipHostMalloc``, as this immediately reserves memory and might prevent other applications from using it. This behavior could strain the operating system schedulers or prevent other applications from running on the same GPU.
+- Try to allocate memory in suitably sized blocks early in the application's lifecycle and deallocate only when the application no longer needs it. Minimize the number of ``hipMalloc`` and ``hipFree`` calls in your application, particularly in performance-critical areas.
 - Consider resorting to other memory types such as ``hipHostMalloc`` or ``hipMallocManaged``, if an application can't allocate sufficient device memory. While the other memory types might not offer similar performance, they allow the application to continue running.
-- For supported platforms, use ``hipMallocManaged``, as it allows oversubscription. With the right policies, ``hipMallocManaged`` can maintain most, if not all, ``hipMalloc`` performance. ``hipMallocManaged`` doesn't require an allocation to be resident until it is needed or prefetched, which eases the load on the operating system's schedulers and facilitates multi-tenant scenarios.
+- For supported platforms, use ``hipMallocManaged``, as it allows oversubscription. With the right policies, ``hipMallocManaged`` can maintain most, if not all, ``hipMalloc`` performance. ``hipMallocManaged`` doesn't require an allocation to be resident until it is needed or prefetched, which eases the load on the operating system's schedulers and facilitates multitenant scenarios.
