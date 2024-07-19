@@ -8,7 +8,7 @@ Performance guidelines
 *******************************************************************************
 
 The AMD HIP performance guidelines are a set of best practices designed to help
-you optimize the application performance on AMD GPUs. The guidelines discuss
+you optimize the application performance on AMDGPUs. The guidelines discuss
 established parallelization and optimization techniques to improve the application performance on HIP-capable GPU architectures.
 
 Here are the four main cornerstones to help you exploit HIP's performance
