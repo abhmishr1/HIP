@@ -70,6 +70,7 @@ malloc
 multicore
 multigrid
 multithreading
+multitenant
 NCCL
 NDRange
 nonnegative
