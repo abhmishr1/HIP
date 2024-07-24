@@ -47,6 +47,7 @@ On non-AMD platforms, like NVIDIA, HIP provides header files required to support
 * {doc}`./how-to/logging`
 * [Unified memory](./how-to/unified_memory)
 * [Cooperative groups](./how-to/cooperative_groups)
+* [Texture fetching](./how-to/texture_fetching)
 * {doc}`./how-to/faq`
 
 :::

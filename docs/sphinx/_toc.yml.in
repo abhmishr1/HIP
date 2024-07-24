@@ -32,6 +32,8 @@ subtrees:
   - file: how-to/cooperative_groups
   - file: how-to/unified_memory
     title: Unified memory
+  - file: how-to/texture_fetching
+    title: Texture fetching
   - file: how-to/faq
 
 - caption: Reference
