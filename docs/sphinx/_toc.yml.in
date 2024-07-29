@@ -19,6 +19,8 @@ subtrees:
   - file: understand/programming_model_reference
   - file: understand/hardware_implementation
   - file: understand/amd_clr
+  - file: understand/texture_fetching
+    title: Texture Fetching
 
 - caption: How to
   entries:
