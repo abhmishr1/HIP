@@ -7,7 +7,7 @@
 Texture Fetching
 *******************************************************************************
 
-Textures are more than just a buffer, that is interpreted as 1D, 2D or 3D array. Because of its legacy as a graphics functionality, textures are indexed with floats. This can happen two different ways, either the index will be in the range of [0..size-1] or in [0..1]. The difference is mathematically just a division, so for the explanations on this page, we'll use the [0..size-1] indices.
+`Textures <https://rocm.docs.amd.com/projects/HIP/en/latest/doxygen/html/group___texture.html>`_ are more than just a buffer, that is interpreted as 1D, 2D or 3D array. Because of its legacy as a graphics functionality, textures are indexed with floats. This can happen two different ways, either the index will be in the range of [0..size-1] or in [0..1]. The difference is mathematically just a division, so for the explanations on this page, we'll use the [0..size-1] indices.
 
 Using float indices isn't trivial. You as a developer, have to decide what happens, when the index is a fraction. There is no rule for how to choose between filtering methods, as it is very dependent of the application.
 
