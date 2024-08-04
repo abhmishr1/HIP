@@ -225,20 +225,26 @@ Grid
 Cooperative groups thread model
 -------------------------------
 
-The Cooperative Groups API introduces new APIs to launch, group, subdivide, synchronize and identify threads, as well as some predefined group-collective algorithms, but most importantly a matching threading model to think in terms of. It relaxes some restrictions of the :ref:`inherent_thread_model` imposed by the strict 1:1 mapping of architectural details to the programming model. Cooperative Groups let you define your own set of thread groups which may fit  your user-cases better than the defaults defined by the hardware.
+The Cooperative groups API introduces new APIs to launch, group, subdivide,
+synchronize and identify threads, as well as some predefined group-collective
+algorithms, but most importantly a matching threading model to think in terms of.
+It relaxes some restrictions of the :ref:`inherent_thread_model` imposed by the
+strict 1:1 mapping of architectural details to the programming model. Cooperative
+groups let you define your own set of thread groups which may fit  your user-cases
+better than the defaults defined by the hardware.
 
 .. note::
   The implicit groups defined by kernel launch parameters are still available 
   when working with cooperative groups.
 
-For further information, see `Cooperative Groups <../how-to/cooperative_groups>`_. 
+For further information, see :doc:`Cooperative groups how-to <./how-to/cooperative_groups>`. 
 
 Memory model
 ============
 
 The hierarchy of threads introduced by :ref:`inherent_thread_model` is induced
-by the memory subsystem of GPUs. :numref:`memory_hierarchy` summarizes that memory namespaces and
-how they relate to the various levels of the threading model.
+by the memory subsystem of GPUs. :numref:`memory_hierarchy` summarizes that memory
+namespaces and how they relate to the various levels of the threading model.
 
 .. _memory_hierarchy:
 
