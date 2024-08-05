@@ -92,6 +92,7 @@ PTX
 PyHIP
 queryable
 prefetching
+quad
 representable
 RMW
 ROCm's
@@ -108,10 +109,13 @@ SPMV
 structs
 SYCL
 syntaxes
+texel
+texels
 tradeoffs
 templated
 typedefs
 UMM
+unintuitive
 upscaled
 variadic
 WinGDB
