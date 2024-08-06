@@ -23,6 +23,7 @@ The HIP documentation is organized as follows:
 :::{grid-item-card} Conceptual
 
 * {doc}`./understand/programming_model`
+* {doc}`./understand/programming_model_reference`
 * {doc}`./understand/hardware_implementation`
 * {doc}`./understand/amd_clr`
 
