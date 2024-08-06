@@ -24,7 +24,7 @@ subtrees:
   entries:
   - file: how-to/programming_manual
   - file: how-to/hip_porting_guide
-  - file: how-to/hip_porting_driver_api
+  - file: how-to/driver_api
   - file: how-to/hip_rtc
   - file: how-to/performance_guidelines
   - file: how-to/debugging

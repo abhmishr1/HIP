@@ -40,7 +40,7 @@ On non-AMD platforms, like NVIDIA, HIP provides header files required to support
 
 * [Programming manual](./how-to/programming_manual)
 * [HIP porting guide](./how-to/hip_porting_guide)
-* [HIP porting: driver API guide](./how-to/hip_porting_driver_api)
+* [HIP porting: driver API guide](./how-to/driver_api)
 * {doc}`./how-to/hip_rtc`
 * {doc}`./how-to/performance_guidelines`
 * [Debugging with HIP](./how-to/debugging)
