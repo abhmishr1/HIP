@@ -136,12 +136,12 @@ Initialization and Termination Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 hip-clang generates initialization and termination functions for each translation unit for host code compilation. The initialization functions call ``__hipRegisterFatBinary`` to register the fatbinary embedded in the ELF file. They also call ``__hipRegisterFunction`` and ``__hipRegisterVar`` to register kernel functions and device side global variables. The termination functions call ``__hipUnregisterFatBinary``.
-hip-clang emits a global variable ``__hip_gpubin_handle`` of ``void**`` type with linkonce linkage and inital value 0 for each host translation unit. Each initialization function checks ``__hip_gpubin_handle`` and register the fatbinary only if ``__hip_gpubin_handle`` is 0 and saves the return value of ``__hip_gpubin_handle`` to ``__hip_gpubin_handle``. This is to guarantee that the fatbinary is only registered once. Similar check is done in the termination functions.
+hip-clang emits a global variable ``__hip_gpubin_handle`` of ``void**`` type with ``linkonce`` linkage and initial value 0 for each host translation unit. Each initialization function checks ``__hip_gpubin_handle`` and register the fatbinary only if ``__hip_gpubin_handle`` is 0 and saves the return value of ``__hip_gpubin_handle`` to ``__hip_gpubin_handle``. This is to guarantee that the fatbinary is only registered once. Similar check is done in the termination functions.
 
 Kernel Launching
 ^^^^^^^^^^^^^^^^
 
-hip-clang supports kernel launching by CUDA ``<<<>>>`` syntax, hipLaunchKernelGGL. The latter one is macro which expand to CUDA ``<<<>>>`` syntax.
+hip-clang supports kernel launching by CUDA ``<<<>>>`` syntax, ``hipLaunchKernelGGL``. The latter one is macro which expand to CUDA ``<<<>>>`` syntax.
 
 When the executable or shared library is loaded by the dynamic linker, the initialization functions are called. In the initialization functions, when ``__hipRegisterFatBinary`` is called, the code objects containing all kernels are loaded; when ``__hipRegisterFunction`` is called, the stub functions are associated with the corresponding kernels in code objects.
 
@@ -192,48 +192,53 @@ The ``hipModule_t`` interface does not support ``cuModuleLoadDataEx`` function, 
 HIP-Clang does not use PTX and does not support these compilation options.
 In fact, HIP-Clang code objects always contain fully compiled ISA and do not require additional compilation as a part of the load step.
 The corresponding HIP function ``hipModuleLoadDataEx`` behaves as ``hipModuleLoadData`` on HIP-Clang path (compilation options are not used) and as ``cuModuleLoadDataEx`` on NVCC path.
-For example (CUDA):
 
-.. code-block:: cpp
+For example:
 
-    CUmodule module;
-    void *imagePtr = ...; // Somehow populate data pointer with code object
+.. tab-set::
 
-    const int numOptions = 1;
-    CUJit_option options[numOptions];
-    void *optionValues[numOptions];
+    .. tab-item:: HIP
 
-    options[0] = CU_JIT_MAX_REGISTERS;
-    unsigned maxRegs = 15;
-    optionValues[0] = (void *)(&maxRegs);
+        .. code-block:: cpp
 
-    cuModuleLoadDataEx(module, imagePtr, numOptions, options, optionValues);
+            hipModule_t module;
+            void *imagePtr = ...; // Somehow populate data pointer with code object
 
-    CUfunction k;
-    cuModuleGetFunction(&k, module, "myKernel");
+            const int numOptions = 1;
+            hipJitOption options[numOptions];
+            void *optionValues[numOptions];
 
-HIP:
+            options[0] = hipJitOptionMaxRegisters;
+            unsigned maxRegs = 15;
+            optionValues[0] = (void *)(&maxRegs);
 
-.. code-block:: cpp
+            // hipModuleLoadData(module, imagePtr) will be called on HIP-Clang path, JIT
+            // options will not be used, and cupModuleLoadDataEx(module, imagePtr,
+            // numOptions, options, optionValues) will be called on NVCC path
+            hipModuleLoadDataEx(module, imagePtr, numOptions, options, optionValues);
 
-    hipModule_t module;
-    void *imagePtr = ...; // Somehow populate data pointer with code object
+            hipFunction_t k;
+            hipModuleGetFunction(&k, module, "myKernel");
 
-    const int numOptions = 1;
-    hipJitOption options[numOptions];
-    void *optionValues[numOptions];
+    .. tab-item:: CUDA
 
-    options[0] = hipJitOptionMaxRegisters;
-    unsigned maxRegs = 15;
-    optionValues[0] = (void *)(&maxRegs);
+        .. code-block:: cpp
 
-    // hipModuleLoadData(module, imagePtr) will be called on HIP-Clang path, JIT
-    // options will not be used, and cupModuleLoadDataEx(module, imagePtr,
-    // numOptions, options, optionValues) will be called on NVCC path
-    hipModuleLoadDataEx(module, imagePtr, numOptions, options, optionValues);
+            CUmodule module;
+            void *imagePtr = ...; // Somehow populate data pointer with code object
 
-    hipFunction_t k;
-    hipModuleGetFunction(&k, module, "myKernel");
+            const int numOptions = 1;
+            CUJit_option options[numOptions];
+            void *optionValues[numOptions];
+
+            options[0] = CU_JIT_MAX_REGISTERS;
+            unsigned maxRegs = 15;
+            optionValues[0] = (void *)(&maxRegs);
+
+            cuModuleLoadDataEx(module, imagePtr, numOptions, options, optionValues);
+
+            CUfunction k;
+            cuModuleGetFunction(&k, module, "myKernel");
 
 The below sample shows how to use ``hipModuleGetFunction``.
 
@@ -318,6 +323,7 @@ HIP Module and Texture Driver API
 HIP supports texture driver APIs however texture reference should be declared in host scope. Following code explains the use of texture reference for ``__HIP_PLATFORM_AMD__`` platform.
 
 .. code-block:: cpp
+
     // Code to generate code object
 
     #include "hip/hip_runtime.h"
@@ -331,6 +337,7 @@ HIP supports texture driver APIs however texture reference should be declared in
     }
 
 .. code-block:: cpp
+
   // Host code:
 
   texture<float, 2, hipReadModeElementType> tex;
