@@ -33,7 +33,7 @@ On non-AMD platforms, like NVIDIA, HIP provides header files required to support
 * {doc}`./understand/programming_model_reference`
 * {doc}`./understand/hardware_implementation`
 * {doc}`./understand/amd_clr`
-* [Texture Fetching](./understand/texture_fetching)
+* [Texture fetching](./understand/texture_fetching)
 
 :::
 
