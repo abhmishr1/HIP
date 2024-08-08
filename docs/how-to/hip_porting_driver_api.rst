@@ -54,10 +54,10 @@ The CUDA Runtime API unifies the Context API with the Device API. This simplifie
 HIP provides a context API to facilitate easy porting from existing Driver codes.
 In HIP, the ``Ctx`` functions largely provide an alternate syntax for changing the active device.
 
-Most new applications will prefer to use ``hipSetDevice`` or the stream APIs, therefore HIP has marked ``hipCtx`` APIs as **deprecated**. Support for these APIs may not be available in future releases. For more details on deprecated APIs please refer :doc:`rocm:reference/deprecated_api_list`. 
+Most new applications will prefer to use ``hipSetDevice`` or the stream APIs, therefore HIP has marked ``hipCtx`` APIs as **deprecated**. Support for these APIs may not be available in future releases. For more details on deprecated APIs please refer :doc:`reference/deprecated_api_list`.
 
 HIP Module and ``Ctx`` APIs
-=========================
+===========================
 
 Rather than present two separate APIs, HIP extends the HIP API with new APIs for Modules and ``Ctx`` control.
 
@@ -106,6 +106,8 @@ HIP provides APIs with both styles: for example, ``hipMemcpyH2D`` as well as ``h
 The first flavor may be faster in some cases since they avoid host overhead to detect the different memory directions.
 
 HIP defines a single error space, and uses camel-case for all errors (i.e. ``hipErrorInvalidValue``).
+
+For HIPIFY reference, visit :doc:`rocm-install-on-linux:index`.
 
 Address Spaces
 ^^^^^^^^^^^^^^
