@@ -1248,6 +1248,17 @@ typedef struct hipMemsetParams {
   size_t width;
 } hipMemsetParams;
 
+typedef struct _uint8_vector_c {
+  size_t size;
+  size_t limit;
+  uint8_t* data;
+
+} vector_uint8;
+
+typedef struct hipKernelInfo {
+   vector_uint8 binary;
+} hipKernelInfo;
+
 typedef struct hipMemAllocNodeParams {
     hipMemPoolProps poolProps;          ///< Pool properties, which contain where
                                         ///< the location should reside
@@ -3924,6 +3935,18 @@ hipError_t hipGetSymbolAddress(void** devPtr, const void* symbol);
  *
  */
 hipError_t hipGetSymbolSize(size_t* size, const void* symbol);
+
+/**
+ *  @brief Get a struct with kernel data (e.g., binary) on the device.
+ *
+ *  @param[in]   hostFunction pointer of host function.
+ *  @param[out]  kernelData struct containiing kernel data
+ *  @param[in]   archName string with arch name (e.g., gfx940)
+ *
+ *  @return #hipSuccess, #hipErrorInvalidValue
+ *
+ */
+hipError_t hipGetKernelInfo(const void* hostFunction, hipKernelInfo* kernelData, const char * archName);
 
 /**
  *  @brief Copies data to the given symbol on the device.
