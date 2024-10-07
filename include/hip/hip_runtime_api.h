@@ -4555,13 +4555,27 @@ hipError_t hipGetSymbolSize(size_t* size, const void* symbol);
  *  @brief Get a struct with kernel data (e.g., binary) on the device.
  *
  *  @param[in]   hostFunction pointer of host function.
- *  @param[out]  kernelData struct containiing kernel data
+ *  @param[out]  kernelData struct containing kernel data
  *  @param[in]   archName string with arch name (e.g., gfx940)
  *
  *  @return #hipSuccess, #hipErrorInvalidValue
  *
+ *  @see hipFreeKernelInfo
+ *
  */
 hipError_t hipGetKernelInfo(const void* hostFunction, hipKernelInfo* kernelData, const char * archName);
+
+/**
+ *  @brief Free the struct with kernel data (e.g., binary).
+ *
+ *  @param[in]  kernelData struct containing kernel data
+ *
+ *  @return #hipSuccess, #hipErrorInvalidValue
+ *
+ *  @see hipGetKernelInfo
+ *
+ */
+hipError_t hipFreeKernelInfo(hipKernelInfo* kernelData);
 
 /**
  * @brief Gets the pointer of requested HIP driver function.
