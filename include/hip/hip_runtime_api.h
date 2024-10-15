@@ -1404,6 +1404,8 @@ typedef struct _uint8_vector_c {
 
 typedef struct hipKernelInfo {
    vector_uint8 binary;
+   vector_uint8 kernargs_sizes;
+   vector_uint8 kernargs_offsets;
 } hipKernelInfo;
 
 typedef struct hipMemAllocNodeParams {
