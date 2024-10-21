@@ -14,33 +14,13 @@ decltype(auto) hipKernelFunc(std::string symbolName)
     {
         T *ptr = nullptr;
 
-        const char * envPath = std::getenv("HIP_PRESIL_PATH");
-        if (!envPath) return ptr;
-
-        std::string hipPresilSO = std::string(envPath);
-
-        if (hipPresilSO.empty()) {
-            return ptr;
-        } else {
-            namespace fs = std::filesystem;
-            const fs::path soPath=hipPresilSO;
-            if (!fs::exists(soPath) ) {
-                std::cout << ".so doesn't exist at: " << hipPresilSO << std::endl;
-                return ptr;
-            }
-        }
-        void* handle = dlopen(hipPresilSO.c_str(), RTLD_LAZY);
+        void* handle = dlopen("libamdhip64.so", RTLD_LAZY);
 
         if (!handle) {
-            std::cout << "Warning: check HIP_PRESIL_PATH. Could not open hip presil .so library: " << dlerror() << std::endl;
+            std::cout << "Could not find libamdhip64.so: " << dlerror() << std::endl;
             return ptr;
         }
         ptr = (T*) dlsym(handle, symbolName.c_str());
-
-        if (!ptr) {
-            std::cerr << "Error: Could not find symbol: " << symbolName << std::endl << dlerror() << std::endl;
-            dlclose(handle);
-        }
 
         dlclose(handle);
         return ptr;
