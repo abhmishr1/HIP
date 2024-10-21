@@ -8,7 +8,7 @@
 #include <iostream>
 
 template <typename T>
-decltype(auto) hipKernelFunc(std::string symbolName)
+decltype(auto) hipKernelFunc(const char * symbolName)
 {
 	static T *func = [symbolName]()
     {
@@ -20,7 +20,7 @@ decltype(auto) hipKernelFunc(std::string symbolName)
             std::cout << "Could not find libamdhip64.so: " << dlerror() << std::endl;
             return ptr;
         }
-        ptr = (T*) dlsym(handle, symbolName.c_str());
+        ptr = (T*) dlsym(handle, symbolName);
 
         dlclose(handle);
         return ptr;
@@ -31,7 +31,7 @@ decltype(auto) hipKernelFunc(std::string symbolName)
 
 hipError_t hipGetKernelData(const void* hostFunction, hipKernelInfo* kernelData, const char * archName) {
 
-    auto func_ptr = hipKernelFunc<decltype(hipGetKernelInfo)>(std::string("hipGetKernelInfo"));
+    auto func_ptr = hipKernelFunc<decltype(hipGetKernelInfo)>("hipGetKernelInfo");
 
     if (func_ptr == nullptr) {
         return hipErrorInvalidValue;
@@ -45,7 +45,7 @@ hipError_t hipGetKernelData(const void* hostFunction, hipKernelInfo* kernelData,
 
 hipError_t hipFreeKernelData(hipKernelInfo* kernelData) {
 
-    auto func_ptr = hipKernelFunc<decltype(hipFreeKernelInfo)>(std::string("hipFreeKernelInfo"));
+    auto func_ptr = hipKernelFunc<decltype(hipFreeKernelInfo)>("hipFreeKernelInfo");
 
     if (func_ptr == nullptr) {
         return hipErrorInvalidValue;
