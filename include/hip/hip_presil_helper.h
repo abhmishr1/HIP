@@ -1,5 +1,5 @@
-#ifndef HIP_INCLUDE_HIP_HIP_KERNEL_PRESIL_API_H
-#define HIP_INCLUDE_HIP_HIP_KERNEL_PRESIL_API_H
+#ifndef HIP_INCLUDE_HIP_HIP_PRESIL_HELPER_H
+#define HIP_INCLUDE_HIP_HIP_PRESIL_HELPER_H
 
 #include <hip/hip_runtime.h>
 #include <dlfcn.h>
