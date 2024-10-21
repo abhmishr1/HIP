@@ -8,10 +8,9 @@
 #include <iostream>
 
 template <typename T>
-decltype(auto) hipKernelFunc(const char * symbolName)
-{
-	static T *func = [symbolName]()
-    {
+decltype(auto) hipKernelFunc(const char * symbolName) {
+
+    static T *func = [symbolName]() {
         T *ptr = nullptr;
 
         void* handle = dlopen("libamdhip64.so", RTLD_LAZY);
@@ -24,9 +23,9 @@ decltype(auto) hipKernelFunc(const char * symbolName)
 
         dlclose(handle);
         return ptr;
-	}();
+    }();
 
-	return func;
+    return func;
 }
 
 hipError_t hipGetKernelData(const void* hostFunction, hipKernelInfo* kernelData, const char * archName) {
