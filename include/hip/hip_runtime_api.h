@@ -1395,6 +1395,12 @@ typedef struct hipMemsetParams {
   size_t width;
 } hipMemsetParams;
 
+typedef enum hipArgAccQualfier {
+    hipArgReadWrite = 0,
+    hipArgReadOnly = 1,
+    hipArgWriteOnly = 2
+} hipArgAccQualfier;
+
 typedef struct hipVectorUint8 {
   size_t size;
   size_t limit;
@@ -1405,6 +1411,7 @@ typedef struct hipKernelInfo {
    hipVectorUint8 binary;
    hipVectorUint8 kernArgsSizes;
    hipVectorUint8 kernArgsOffsets;
+   hipVectorUint8 kernArgsAccQualifiers;
 } hipKernelInfo;
 
 typedef struct hipMemAllocNodeParams {
