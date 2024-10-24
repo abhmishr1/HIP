@@ -1395,17 +1395,16 @@ typedef struct hipMemsetParams {
   size_t width;
 } hipMemsetParams;
 
-typedef struct _uint8_vector_c {
+typedef struct hipVectorUint8 {
   size_t size;
   size_t limit;
   uint8_t* data;
-
-} vector_uint8;
+} hipVectorUint8;
 
 typedef struct hipKernelInfo {
-   vector_uint8 binary;
-   vector_uint8 kernargs_sizes;
-   vector_uint8 kernargs_offsets;
+   hipVectorUint8 binary;
+   hipVectorUint8 kernArgsSizes;
+   hipVectorUint8 kernArgsOffsets;
 } hipKernelInfo;
 
 typedef struct hipMemAllocNodeParams {
