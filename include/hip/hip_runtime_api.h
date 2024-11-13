@@ -1407,12 +1407,22 @@ typedef struct hipVectorUint8 {
   uint8_t* data;
 } hipVectorUint8;
 
+typedef struct hipVectorVoid {
+  size_t size;
+  size_t limit;
+  void** data;
+} hipVectorVoid;
+
 typedef struct hipKernelInfo {
    hipVectorUint8 binary;
    hipVectorUint8 kernArgsSizes;
    hipVectorUint8 kernArgsOffsets;
    hipVectorUint8 kernArgsAccQualifiers;
 } hipKernelInfo;
+
+typedef struct hipKArgsMallocsList {
+   hipVectorVoid mallocs;
+} hipKArgsMallocsList;
 
 typedef struct hipMemAllocNodeParams {
     hipMemPoolProps poolProps;          ///< Pool properties, which contain where
@@ -4584,6 +4594,19 @@ hipError_t hipGetKernelInfo(const void* hostFunction, hipKernelInfo* kernelData,
  *
  */
 hipError_t hipFreeKernelInfo(hipKernelInfo* kernelData);
+
+/**
+ *  @brief Get a struct with list of memory allocations for a kernel on the specified device.
+ *
+ *  @param[in]   kArgsAddr addresses of kernel arguments
+ *  @param[in]   kArgsSize total size of kernel arguments
+ *  @param[in]   devId device id
+ *  @param[out]  mallocsList struct containing list of memory allocations
+ *
+ *  @return #hipSuccess, #hipErrorInvalidValue
+ *
+ */
+hipError_t hipGetKArgsMallocs(void** kArgsAddr, size_t kArgsSize, size_t devId, hipKArgsMallocsList* mallocsList);
 
 /**
  * @brief Gets the pointer of requested HIP driver function.
