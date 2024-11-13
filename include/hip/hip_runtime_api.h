@@ -4605,8 +4605,22 @@ hipError_t hipFreeKernelInfo(hipKernelInfo* kernelData);
  *
  *  @return #hipSuccess, #hipErrorInvalidValue
  *
+ *  @see hipFreeKArgsMallocs
+ *
  */
 hipError_t hipGetKArgsMallocs(void** kArgsAddr, size_t kArgsSize, size_t devId, hipKArgsMallocsList* mallocsList);
+
+/**
+ *  @brief Free the struct with list of memory allocations.
+ *
+ *  @param[in]  mallocsList struct containing list of memory allocations
+ *
+ *  @return #hipSuccess, #hipErrorInvalidValue
+ *
+ *  @see hipGetKArgsMallocs
+ *
+ */
+hipError_t hipFreeKArgsMallocs(hipKArgsMallocsList* mallocsList);
 
 /**
  * @brief Gets the pointer of requested HIP driver function.
