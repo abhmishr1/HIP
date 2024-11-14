@@ -6,6 +6,7 @@
 #include <string.h>
 #include <filesystem>
 #include <iostream>
+#include <vector>
 
 template <typename T>
 decltype(auto) hipPresilHelperFunc(const char * symbolName) {
@@ -52,6 +53,29 @@ hipError_t hipFreeKernelData(hipKernelInfo* kernelData) {
 
     hipError_t hip_error;
     hip_error = func_ptr(kernelData);
+
+    return hip_error;
+}
+
+hipError_t hipGetKernelArgsMallocs(void** kArgsAddr, size_t kArgsSize, size_t deviceId, std::vector<void*> &mallocsVec) {
+
+    auto get_func_ptr = hipPresilHelperFunc<decltype(hipGetKArgsMallocs)>("hipGetKArgsMallocs");
+    auto free_func_ptr = hipPresilHelperFunc<decltype(hipFreeKArgsMallocs)>("hipFreeKArgsMallocs");
+
+    if (get_func_ptr == nullptr || free_func_ptr == nullptr) {
+        return hipErrorInvalidValue;
+    }
+
+    hipError_t          hip_error;
+    hipKArgsMallocsList mallocsList;
+
+    hip_error = get_func_ptr(kArgsAddr, kArgsSize, deviceId, &mallocsList);
+
+    for (int i = 0; i< mallocsList.mallocs.size; i++) {
+      mallocsVec.push_back(mallocsList.mallocs.data[i]);
+    }
+
+    hip_error = free_func_ptr(&mallocsList);
 
     return hip_error;
 }
