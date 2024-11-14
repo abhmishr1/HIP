@@ -8,7 +8,7 @@
 #include <iostream>
 
 template <typename T>
-decltype(auto) hipKernelFunc(const char * symbolName) {
+decltype(auto) hipPresilHelperFunc(const char * symbolName) {
 
     static T *func = [symbolName]() {
         T *ptr = nullptr;
@@ -30,7 +30,7 @@ decltype(auto) hipKernelFunc(const char * symbolName) {
 
 hipError_t hipGetKernelData(const void* hostFunction, hipKernelInfo* kernelData, const char * archName) {
 
-    auto func_ptr = hipKernelFunc<decltype(hipGetKernelInfo)>("hipGetKernelInfo");
+    auto func_ptr = hipPresilHelperFunc<decltype(hipGetKernelInfo)>("hipGetKernelInfo");
 
     if (func_ptr == nullptr) {
         return hipErrorInvalidValue;
@@ -44,7 +44,7 @@ hipError_t hipGetKernelData(const void* hostFunction, hipKernelInfo* kernelData,
 
 hipError_t hipFreeKernelData(hipKernelInfo* kernelData) {
 
-    auto func_ptr = hipKernelFunc<decltype(hipFreeKernelInfo)>("hipFreeKernelInfo");
+    auto func_ptr = hipPresilHelperFunc<decltype(hipFreeKernelInfo)>("hipFreeKernelInfo");
 
     if (func_ptr == nullptr) {
         return hipErrorInvalidValue;
