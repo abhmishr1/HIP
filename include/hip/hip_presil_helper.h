@@ -8,6 +8,26 @@
 #include <iostream>
 #include <vector>
 
+struct hipKernelData {
+    std::vector<uint8_t> kernelBin;
+    std::vector<uint8_t> kArgsSizes;
+    std::vector<uint8_t> kArgsOffsets;
+    std::vector<uint8_t> kArgsAccQuals;
+
+    void free() {
+        kernelBin.clear();
+        kArgsSizes.clear();
+        kArgsOffsets.clear();
+        kArgsAccQuals.clear();
+    }
+};
+
+enum AccQualType {
+    READ_ONLY = hipArgReadOnly,
+    WRITE_ONLY = hipArgWriteOnly,
+    READ_WRITE = hipArgReadWrite
+};
+
 template <typename T>
 decltype(auto) hipPresilHelperFunc(const char * symbolName) {
 
@@ -29,30 +49,34 @@ decltype(auto) hipPresilHelperFunc(const char * symbolName) {
     return func;
 }
 
-hipError_t hipGetKernelData(const void* hostFunction, hipKernelInfo* kernelData, const char * archName) {
+hipError_t hipGetKernelData(const void* hostFunction, const char * archName, hipKernelData &kernelData) {
 
-    auto func_ptr = hipPresilHelperFunc<decltype(hipGetKernelInfo)>("hipGetKernelInfo");
+    auto get_func_ptr = hipPresilHelperFunc<decltype(hipGetKernelInfo)>("hipGetKernelInfo");
+    auto free_func_ptr = hipPresilHelperFunc<decltype(hipFreeKernelInfo)>("hipFreeKernelInfo");
 
-    if (func_ptr == nullptr) {
+    if (get_func_ptr == nullptr || free_func_ptr == nullptr) {
         return hipErrorInvalidValue;
     }
 
-    hipError_t hip_error;
-    hip_error = func_ptr(hostFunction, kernelData, archName);
+    hipError_t    hip_error;
+    hipKernelInfo kernelInfo;
 
-    return hip_error;
-}
+    hip_error = get_func_ptr(hostFunction, &kernelInfo, archName);
 
-hipError_t hipFreeKernelData(hipKernelInfo* kernelData) {
-
-    auto func_ptr = hipPresilHelperFunc<decltype(hipFreeKernelInfo)>("hipFreeKernelInfo");
-
-    if (func_ptr == nullptr) {
-        return hipErrorInvalidValue;
+    for (int i = 0; i < kernelInfo.binary.size; i++) {
+        kernelData.kernelBin.push_back(kernelInfo.binary.data[i]);
     }
 
-    hipError_t hip_error;
-    hip_error = func_ptr(kernelData);
+    for (int i = 0; i < kernelInfo.kernArgsSizes.size; i++) {
+        kernelData.kArgsSizes.push_back(kernelInfo.kernArgsSizes.data[i]);
+        kernelData.kArgsOffsets.push_back(kernelInfo.kernArgsOffsets.data[i]);
+    }
+
+    for (int i = 0; i < kernelInfo.kernArgsAccQualifiers.size; i++) {
+        kernelData.kArgsAccQuals.push_back(kernelInfo.kernArgsAccQualifiers.data[i]);
+    }
+
+    hip_error = free_func_ptr(&kernelInfo);
 
     return hip_error;
 }
