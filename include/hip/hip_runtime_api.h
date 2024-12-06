@@ -1418,6 +1418,7 @@ typedef struct hipKernelInfo {
    hipVectorUint8 kernArgsSizes;
    hipVectorUint8 kernArgsOffsets;
    hipVectorUint8 kernArgsAccQualifiers;
+   size_t         kernArgSegSize;
 } hipKernelInfo;
 
 typedef struct hipKArgsMallocsList {

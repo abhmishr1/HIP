@@ -13,6 +13,7 @@ struct hipKernelData {
     std::vector<uint8_t> kArgsSizes;
     std::vector<uint8_t> kArgsOffsets;
     std::vector<uint8_t> kArgsAccQuals;
+    size_t               kArgSegSize;
 
     void free() {
         kernelBin.clear();
@@ -75,6 +76,8 @@ hipError_t hipGetKernelData(const void* hostFunction, const char * archName, hip
     for (int i = 0; i < kernelInfo.kernArgsAccQualifiers.size; i++) {
         kernelData.kArgsAccQuals.push_back(kernelInfo.kernArgsAccQualifiers.data[i]);
     }
+
+    kernelData.kArgSegSize = kernelInfo.kernArgSegSize;
 
     hip_error = free_func_ptr(&kernelInfo);
 
