@@ -1417,6 +1417,7 @@ typedef struct hipKernelInfo {
    hipVectorUint8 binary;
    hipVectorUint8 kernArgsSizes;
    hipVectorUint8 kernArgsOffsets;
+   hipVectorUint8 kernArgsHidden;
    hipVectorUint8 kernArgsAccQualifiers;
    size_t         kernArgSegSize;
 } hipKernelInfo;
